@@ -1,7 +1,7 @@
 import { SITE_SLUG } from '../config/site'
 import { TABLES } from '../config/tables'
 import { supabase } from '../lib/supabase'
-import type { ContactCTA, ContentSection, Event, GalleryItem, Member, MemberCategory, SocialLink, Video } from '../types'
+import type { ContactCTA, ContentSection, Event, Founder, GalleryItem, Member, MemberCategory, NewsArticle, SocialLink, Video } from '../types'
 
 async function dataOrThrow<T>(promise: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<T> {
   const { data, error } = await promise
@@ -11,9 +11,11 @@ async function dataOrThrow<T>(promise: PromiseLike<{ data: unknown; error: { mes
 
 export const queryKeys = {
   members: ['members', SITE_SLUG] as const,
+  founders: ['founders', SITE_SLUG] as const,
   categories: ['member-categories', SITE_SLUG] as const,
   events: ['events', SITE_SLUG] as const,
   videos: ['videos', SITE_SLUG] as const,
+  news: ['news', SITE_SLUG] as const,
   gallery: ['gallery', SITE_SLUG] as const,
   content: ['site-content', SITE_SLUG] as const,
   socials: ['social-links', SITE_SLUG] as const,
@@ -33,6 +35,12 @@ export async function getMembers(includeInactive = false): Promise<Member[]> {
 
 export async function getFeaturedMembers() {
   return (await getMembers()).filter((member) => member.featured)
+}
+
+export async function getFounders(includeInactive = false): Promise<Founder[]> {
+  let query = supabase.from(TABLES.founders).select('*').eq('site_slug', SITE_SLUG).order('display_order').order('name')
+  if (!includeInactive) query = query.eq('is_active', true)
+  return dataOrThrow<Founder[]>(query)
 }
 
 export async function getMemberBySlug(slug: string) {
@@ -64,6 +72,18 @@ export async function getVideos(includeUnpublished = false): Promise<Video[]> {
   let query = supabase.from(TABLES.videos).select('*').eq('site_slug', SITE_SLUG).order('published_at', { ascending: false })
   if (!includeUnpublished) query = query.eq('is_published', true)
   return dataOrThrow<Video[]>(query)
+}
+
+export async function getNews(includeUnpublished = false): Promise<NewsArticle[]> {
+  let query = supabase.from(TABLES.news).select('*').eq('site_slug', SITE_SLUG).order('published_at', { ascending: false })
+  if (!includeUnpublished) query = query.eq('is_published', true)
+  return dataOrThrow<NewsArticle[]>(query)
+}
+
+export async function getNewsBySlug(slug: string) {
+  return dataOrThrow<NewsArticle | null>(
+    supabase.from(TABLES.news).select('*').eq('site_slug', SITE_SLUG).eq('slug', slug).eq('is_published', true).maybeSingle(),
+  )
 }
 
 export async function getGallery(): Promise<GalleryItem[]> {

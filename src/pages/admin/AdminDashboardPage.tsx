@@ -1,23 +1,29 @@
-import { CalendarDays, Image, PlaySquare, Users } from 'lucide-react'
+import { CalendarDays, Crown, Image, Newspaper, PlaySquare, Users } from 'lucide-react'
 import { useQueries } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { getEvents, getGallery, getMembers, getVideos, queryKeys } from '../../services/content'
+import { getEvents, getFounders, getGallery, getMembers, getNews, getVideos, queryKeys } from '../../services/content'
 
 export default function AdminDashboardPage() {
   const results = useQueries({ queries: [
     { queryKey: [...queryKeys.members, 'admin'], queryFn: () => getMembers(true) },
+    { queryKey: [...queryKeys.founders, 'admin'], queryFn: () => getFounders(true) },
     { queryKey: [...queryKeys.events, 'admin'], queryFn: () => getEvents(true) },
     { queryKey: [...queryKeys.videos, 'admin'], queryFn: () => getVideos(true) },
+    { queryKey: [...queryKeys.news, 'admin'], queryFn: () => getNews(true) },
     { queryKey: [...queryKeys.gallery, 'admin'], queryFn: getGallery },
   ] })
   const members = results[0].data || []
-  const events = results[1].data || []
-  const videos = results[2].data || []
-  const gallery = results[3].data || []
+  const founders = results[1].data || []
+  const events = results[2].data || []
+  const videos = results[3].data || []
+  const news = results[4].data || []
+  const gallery = results[5].data || []
   const cards = [
     { label: 'Total members', value: members.length, icon: Users, to: '/admin/members' },
+    { label: 'Founders', value: founders.length, icon: Crown, to: '/admin/founders' },
     { label: 'Upcoming events', value: events.filter(e => new Date(e.start_date) > new Date()).length, icon: CalendarDays, to: '/admin/events' },
     { label: 'Published videos', value: videos.filter(v => v.is_published).length, icon: PlaySquare, to: '/admin/videos' },
+    { label: 'Published news', value: news.filter(article => article.is_published).length, icon: Newspaper, to: '/admin/news' },
     { label: 'Gallery images', value: gallery.length, icon: Image, to: '/admin/gallery' },
   ]
   return <div>
@@ -46,6 +52,12 @@ export default function AdminDashboardPage() {
         {events.length ? <div className="mt-3 divide-y divide-neutral-100">{events.slice(0, 5).map(event => <div key={event.id} className="py-3">
           <strong className="block text-sm">{event.title}</strong><span className="text-xs text-neutral-500">{new Date(event.start_date).toLocaleString()}</span>
         </div>)}</div> : <FirstRun text="No events yet." to="/admin/events" label="Create your first event" />}
+      </section>
+      <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+        <h2 className="text-base font-black">Latest news</h2>
+        {news.length ? <div className="mt-3 divide-y divide-neutral-100">{news.slice(0, 5).map(article => <div key={article.id} className="py-3">
+          <strong className="block text-sm">{article.title}</strong><span className="text-xs text-neutral-500">{article.category} · {article.is_published ? 'Published' : 'Draft'}</span>
+        </div>)}</div> : <FirstRun text="No news articles yet." to="/admin/news" label="Create your first article" />}
       </section>
     </div>
   </div>

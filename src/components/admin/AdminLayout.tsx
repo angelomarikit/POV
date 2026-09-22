@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, Images, LayoutDashboard, LogOut, Menu, MessageCircle, PanelsTopLeft, PlaySquare, Settings, Share2, Users, X } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Crown, Images, LayoutDashboard, LogOut, Menu, MessageCircle, Newspaper, PanelsTopLeft, PlaySquare, Settings, Share2, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -9,14 +9,16 @@ const nav = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/homepage', label: 'Homepage', icon: PanelsTopLeft },
   { to: '/admin/members', label: 'Members', icon: Users },
+  { to: '/admin/founders', label: 'Founders', icon: Crown },
   { to: '/admin/categories', label: 'Categories', icon: Users },
   { to: '/admin/events', label: 'Events', icon: CalendarDays },
   { to: '/admin/videos', label: 'Videos', icon: PlaySquare },
+  { to: '/admin/news', label: 'News', icon: Newspaper },
   { to: '/admin/gallery', label: 'Gallery', icon: Images },
   { to: '/admin/media', label: 'Media library', icon: Images },
   { to: '/admin/social', label: 'Social links', icon: Share2 },
   { to: '/admin/contacts', label: 'CTA / Messenger', icon: MessageCircle },
-  { to: '/admin/settings', label: 'About & settings', icon: Settings },
+  { to: '/admin/settings', label: 'About content', icon: Settings },
 ]
 
 export function AdminLayout() {

@@ -3,6 +3,7 @@
   <url><loc>__SITE_URL__/</loc></url>
   <url><loc>__SITE_URL__/community</loc></url>
   <url><loc>__SITE_URL__/events</loc></url>
-  <url><loc>__SITE_URL__/videos</loc></url>
-  <url><loc>__SITE_URL__/about</loc></url>
+  <url><loc>__SITE_URL__/news</loc></url>
+  <url><loc>__SITE_URL__/founders</loc></url>
+  <url><loc>__SITE_URL__/partnership</loc></url>
 </urlset>

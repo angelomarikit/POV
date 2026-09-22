@@ -56,6 +56,24 @@ export interface Member {
   member_categories?: MemberCategory | null
 }
 
+export interface Founder {
+  id: string
+  site_slug: string
+  name: string
+  slug: string
+  role: string | null
+  image_url: string | null
+  short_description: string | null
+  bio: string | null
+  facebook_url: string | null
+  messenger_url: string | null
+  website_url: string | null
+  display_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export type EventStatus = 'upcoming' | 'ongoing' | 'completed'
 export interface Event {
   id: string
@@ -97,6 +115,23 @@ export interface Video {
   thumbnail_url: string | null
   cta_label: string | null
   cta_url: string | null
+  featured: boolean
+  is_published: boolean
+  published_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface NewsArticle {
+  id: string
+  site_slug: string
+  title: string
+  slug: string
+  category: string
+  excerpt: string | null
+  body: string | null
+  image_url: string | null
+  youtube_url: string | null
   featured: boolean
   is_published: boolean
   published_at: string | null
@@ -153,4 +188,4 @@ export interface ContactCTA {
 
 export type ContentTable = (typeof TABLES)[keyof typeof TABLES]
 
-export type ContentRecord = Member | MemberCategory | Event | Video | GalleryItem | ContentSection | SocialLink | ContactCTA
+export type ContentRecord = Member | Founder | MemberCategory | Event | Video | NewsArticle | GalleryItem | ContentSection | SocialLink | ContactCTA

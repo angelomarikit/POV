@@ -2,6 +2,8 @@
 
 A mobile-first community platform and secure Supabase CMS built with React, TypeScript, Vite, Tailwind CSS, TanStack Query, and Vite PWA.
 
+Visitor and administrator instructions (how to browse the app, publish content, and use the CMS) are in [USER_GUIDE.md](USER_GUIDE.md).
+
 ## Local setup
 
 1. Clone the repository and open it in a terminal.

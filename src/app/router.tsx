@@ -1,16 +1,18 @@
 import { lazy, Suspense, type ReactNode } from 'react'
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { PublicLayout } from '../components/layout/PublicLayout'
 import { AdminLayout } from '../components/admin/AdminLayout'
 import { ProtectedAdminRoute } from '../components/admin/AdminAuth'
 
 const HomePage = lazy(() => import('../pages/HomePage'))
 const CommunityPage = lazy(() => import('../pages/CommunityPage'))
+const FoundersPage = lazy(() => import('../pages/FoundersPage'))
 const MemberProfilePage = lazy(() => import('../pages/MemberProfilePage'))
 const EventsPage = lazy(() => import('../pages/EventsPage'))
 const EventDetailsPage = lazy(() => import('../pages/EventDetailsPage'))
-const VideosPage = lazy(() => import('../pages/VideosPage'))
-const AboutPage = lazy(() => import('../pages/AboutPage'))
+const NewsPage = lazy(() => import('../pages/NewsPage'))
+const PartnershipPage = lazy(() => import('../pages/PartnershipPage'))
+const NewsDetailsPage = lazy(() => import('../pages/NewsDetailsPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 const AdminLoginPage = lazy(() => import('../pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'))
@@ -28,10 +30,14 @@ export const router = createBrowserRouter([
       { index: true, element: <Load><HomePage /></Load> },
       { path: 'community', element: <Load><CommunityPage /></Load> },
       { path: 'community/:slug', element: <Load><MemberProfilePage /></Load> },
+      { path: 'founders', element: <Load><FoundersPage /></Load> },
       { path: 'events', element: <Load><EventsPage /></Load> },
       { path: 'events/:slug', element: <Load><EventDetailsPage /></Load> },
-      { path: 'videos', element: <Load><VideosPage /></Load> },
-      { path: 'about', element: <Load><AboutPage /></Load> },
+      { path: 'videos', element: <Navigate to="/events#videos" replace /> },
+      { path: 'news', element: <Load><NewsPage /></Load> },
+      { path: 'news/:slug', element: <Load><NewsDetailsPage /></Load> },
+      { path: 'partnership', element: <Load><PartnershipPage /></Load> },
+      { path: 'about', element: <Navigate to="/#about" replace /> },
       { path: '*', element: <Load><NotFoundPage /></Load> },
     ],
   },
@@ -45,9 +51,11 @@ export const router = createBrowserRouter([
         { index: true, element: <Load><AdminDashboardPage /></Load> },
         { path: 'homepage', element: <Load><AdminContentPage kind="homepage" /></Load> },
         { path: 'members', element: <Load><AdminContentPage kind="members" /></Load> },
+        { path: 'founders', element: <Load><AdminContentPage kind="founders" /></Load> },
         { path: 'categories', element: <Load><AdminContentPage kind="categories" /></Load> },
         { path: 'events', element: <Load><AdminContentPage kind="events" /></Load> },
         { path: 'videos', element: <Load><AdminContentPage kind="videos" /></Load> },
+        { path: 'news', element: <Load><AdminContentPage kind="news" /></Load> },
         { path: 'gallery', element: <Load><AdminContentPage kind="gallery" /></Load> },
         { path: 'social', element: <Load><AdminContentPage kind="social" /></Load> },
         { path: 'contacts', element: <Load><AdminContentPage kind="contacts" /></Load> },

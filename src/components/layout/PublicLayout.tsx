@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, Home, Info, Menu, MessageCircle, Music2, PlaySquare, Users, X } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Crown, HeartHandshake, Home, LogIn, Menu, MessageCircle, Music2, Newspaper, PlaySquare, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -10,9 +10,11 @@ import { AppShell } from './AppShell'
 const tabs = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/community', label: 'Community', icon: Users },
+  { to: '/founders', label: 'Founders', icon: Crown },
   { to: '/events', label: 'Events', icon: CalendarDays },
-  { to: '/videos', label: 'Videos', icon: PlaySquare },
-  { to: '/about', label: 'About', icon: Info },
+  { to: '/news', label: 'News', icon: Newspaper },
+  { to: '/partnership', label: 'Partnership', icon: HeartHandshake },
+  { to: '/admin/login', label: 'Login', icon: LogIn },
 ]
 
 function useScreenTitle() {
@@ -22,19 +24,24 @@ function useScreenTitle() {
   if (tab) return { title: tab.label, isRoot: true }
   if (pathname.startsWith('/community/')) return { title: 'Profile', isRoot: false }
   if (pathname.startsWith('/events/')) return { title: 'Event', isRoot: false }
+  if (pathname.startsWith('/news/')) return { title: 'News', isRoot: false }
   return { title: '', isRoot: false }
 }
 
 export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   const navigate = useNavigate()
   const { title, isRoot } = useScreenTitle()
 
   useEffect(() => {
     setMenuOpen(false)
-    window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [pathname])
+    if (hash) {
+      requestAnimationFrame(() => document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' }))
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' })
+    }
+  }, [pathname, hash])
 
   return <AppShell>
       <header className="sticky top-0 z-50 bg-[#0b0b0c] pt-[env(safe-area-inset-top)] text-white">
@@ -61,7 +68,7 @@ export function PublicLayout() {
             <Outlet />
           </motion.div>
         </AnimatePresence>
-        <AppFooter />
+        {pathname !== '/partnership' && <AppFooter />}
       </main>
 
       <AnimatePresence>
@@ -80,12 +87,13 @@ export function PublicLayout() {
       </AnimatePresence>
 
       <nav className="app-dock border-t border-black/10 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_34px_rgba(0,0,0,.1)] backdrop-blur-xl" aria-label="App navigation">
-        <div className="grid grid-cols-5">
-          {tabs.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `focus-ring relative flex min-h-16 flex-col items-center justify-center gap-1.5 text-[10px] font-bold transition ${isActive ? 'text-orange-600' : 'text-neutral-500'}`}>
+        {/* Seven tabs: sizing is tightened so the longest label still fits on a small phone. */}
+        <div className="grid grid-cols-7">
+          {tabs.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `focus-ring relative flex min-h-16 flex-col items-center justify-center gap-1 px-0.5 text-[9px] font-bold tracking-tight transition ${isActive ? 'text-orange-600' : 'text-neutral-500'}`}>
             {({ isActive }) => <>
-              {isActive && <motion.span layoutId="tab-indicator" className="absolute top-0 h-[3px] w-9 rounded-b-full bg-orange-500" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-              <Icon size={21} strokeWidth={isActive ? 2.6 : 2} />
-              <span>{label}</span>
+              {isActive && <motion.span layoutId="tab-indicator" className="absolute top-0 h-[3px] w-7 rounded-b-full bg-orange-500" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+              <Icon size={19} strokeWidth={isActive ? 2.6 : 2} />
+              <span className="w-full truncate text-center">{label}</span>
             </>}
           </NavLink>)}
       </div>

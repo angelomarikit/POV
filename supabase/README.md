@@ -11,9 +11,9 @@
 
 1. Open your Supabase project.
 2. Go to **SQL Editor → New query**.
-3. Open `supabase/migrations/001_initial_schema.sql` in this repository.
-4. Copy the entire file into the SQL Editor.
-5. Click **Run**.
+3. Open each file in `supabase/migrations` in number order.
+4. Copy the complete file into the SQL Editor and click **Run**.
+5. Finish `001_initial_schema.sql` before running `002_add_founders.sql`, then `003_add_news.sql`.
 
 This creates the `pov_*` tables, indexes, `updated_at` triggers, Row Level Security policies, seed content, official social links, and the public `pov-media` storage bucket. You do not need to create the bucket manually.
 

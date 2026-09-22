@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronRight, Play, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronRight, Compass, Eye, HeartHandshake, Lightbulb, Play, Sparkles, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQueries } from '@tanstack/react-query'
@@ -9,6 +9,12 @@ import { isSupabaseConfigured } from '../lib/supabase'
 import { SOCIAL_DEFAULTS } from '../config/site'
 
 const reveal = { initial: { opacity: 0, y: 18 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-60px' }, transition: { duration: .45 } }
+
+const values = [
+  { icon: Users, title: 'People first', body: 'Community starts with trust, respect, and real human connection.' },
+  { icon: Lightbulb, title: 'Practical learning', body: 'Ideas matter most when they help people make meaningful progress.' },
+  { icon: HeartHandshake, title: 'Shared success', body: 'We create more opportunity when we build with one another.' },
+]
 
 function ScreenSection({ eyebrow, title, to, action, children }: { eyebrow: string; title: string; to?: string; action?: string; children: React.ReactNode }) {
   return <motion.section {...reveal} className="px-5 py-8">
@@ -42,6 +48,9 @@ export default function HomePage() {
   const gallery = results[4].data || []
   const hero = content.find(item => item.section_key === 'hero')
   const intro = content.find(item => item.section_key === 'about_intro')
+  const story = content.find(item => item.section_key === 'about_story')
+  const mission = content.find(item => item.section_key === 'mission')
+  const vision = content.find(item => item.section_key === 'vision')
   const cta = content.find(item => item.section_key === 'cta')
   const featured = members.filter(member => member.featured)
   const hasStats = members.length > 0 || events.length > 0 || videos.length > 0
@@ -58,7 +67,7 @@ export default function HomePage() {
         <p className="mt-4 text-[15px] leading-7 text-neutral-300">{hero?.subtitle || 'Meet the people, ideas, events, and real stories powering the Pinoy Online Venture community.'}</p>
         <div className="mt-7 grid gap-2.5">
           <Link to={hero?.button_url || '/community'} className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white transition active:scale-[.98]">{hero?.button_text || 'Explore our community'}<ArrowRight size={18} /></Link>
-          <Link to="/videos" className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 font-bold backdrop-blur transition active:scale-[.98]"><Play size={17} />Video Library</Link>
+          <Link to="/events#videos" className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 font-bold backdrop-blur transition active:scale-[.98]"><Play size={17} />Video Library</Link>
         </div>
       </motion.div>
     </section>
@@ -74,7 +83,34 @@ export default function HomePage() {
       <p className="eyebrow mt-6">A community in motion</p>
       <h2 className="heading-section mt-2">{intro?.title || 'Real people building better opportunities together.'}</h2>
       <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">{intro?.body || 'Pinoy Online Venture brings aspiring entrepreneurs, mentors, leaders, and partners into one active community—making learning, connection, and collaboration more accessible.'}</p>
-      <Link to="/about" className="mt-5 inline-flex items-center gap-1.5 font-bold text-orange-700">Discover our story<ArrowRight size={17} /></Link>
+    </motion.section>
+
+    <motion.section id="about" {...reveal} className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--muted)] px-5 py-9">
+      <p className="eyebrow">About POV</p>
+      <h2 className="heading-section mt-2">{story?.title || 'Opportunity grows when people grow together.'}</h2>
+      {story?.image_url && <img src={story.image_url} alt="Pinoy Online Venture community" className="mt-5 aspect-[16/10] w-full rounded-3xl object-cover" />}
+      <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-[var(--text-secondary)]">{story?.body || 'Pinoy Online Venture is a Filipino community centered on connection, practical learning, and meaningful opportunity. This platform brings the real people, activities, events, and stories of the organization into one accessible place.'}</p>
+      <div className="mt-6 grid gap-3">
+        <div className="card p-5">
+          <Compass className="text-orange-600" size={25} />
+          <p className="eyebrow mt-4">Mission</p>
+          <h3 className="mt-1.5 text-lg font-black">{mission?.title || 'Create access to learning and connection.'}</h3>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{mission?.body || 'Our detailed mission statement will be shared here by the Pinoy Online Venture team.'}</p>
+        </div>
+        <div className="card p-5">
+          <Eye className="text-orange-600" size={25} />
+          <p className="eyebrow mt-4">Vision</p>
+          <h3 className="mt-1.5 text-lg font-black">{vision?.title || 'Build a stronger Filipino entrepreneurial community.'}</h3>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{vision?.body || 'Our detailed vision statement will be shared here by the Pinoy Online Venture team.'}</p>
+        </div>
+      </div>
+      <h3 className="mt-8 text-xl font-black tracking-tight">What guides us</h3>
+      <div className="mt-4 grid gap-3">
+        {values.map(item => <div key={item.title} className="flex gap-4 rounded-2xl border border-[var(--border)] bg-white p-4">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-orange-50 text-orange-600"><item.icon size={20} /></span>
+          <div><h4 className="font-black">{item.title}</h4><p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{item.body}</p></div>
+        </div>)}
+      </div>
     </motion.section>
 
     <ScreenSection eyebrow="People of POV" title="Meet the community" to="/community" action="See all">
@@ -99,7 +135,7 @@ export default function HomePage() {
     <section className="bg-[#101012] px-5 py-9 text-white">
       <div className="mb-5 flex items-end justify-between gap-3">
         <div><p className="eyebrow">Watch and learn</p><h2 className="mt-1.5 text-[22px] font-black leading-tight tracking-tight">Stories and insight</h2></div>
-        <Link to="/videos" className="inline-flex shrink-0 items-center gap-0.5 text-sm font-bold text-orange-400">See all<ChevronRight size={16} /></Link>
+        <Link to="/events#videos" className="inline-flex shrink-0 items-center gap-0.5 text-sm font-bold text-orange-400">See all<ChevronRight size={16} /></Link>
       </div>
       {videos.length ? <Rail>{videos.slice(0, 5).map(video => <div key={video.id} className={`shrink-0 snap-start ${videos.length === 1 ? 'w-full' : 'w-[85%]'}`}><VideoCard video={video} /></div>)}</Rail>
         : <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center text-sm text-neutral-400"><Play className="mx-auto mb-3 text-orange-500" />Videos will appear here when published.</div>}
