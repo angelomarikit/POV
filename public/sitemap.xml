@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://pinoy-online-venture.vercel.app/</loc></url>
-  <url><loc>https://pinoy-online-venture.vercel.app/community</loc></url>
-  <url><loc>https://pinoy-online-venture.vercel.app/events</loc></url>
-  <url><loc>https://pinoy-online-venture.vercel.app/videos</loc></url>
-  <url><loc>https://pinoy-online-venture.vercel.app/about</loc></url>
+  <url><loc>__SITE_URL__/</loc></url>
+  <url><loc>__SITE_URL__/community</loc></url>
+  <url><loc>__SITE_URL__/events</loc></url>
+  <url><loc>__SITE_URL__/videos</loc></url>
+  <url><loc>__SITE_URL__/about</loc></url>
 </urlset>

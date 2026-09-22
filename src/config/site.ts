@@ -2,9 +2,9 @@ export const SITE_SLUG = import.meta.env.VITE_SITE_SLUG?.trim() || 'pinoy-online
 export const SITE_NAME = 'Pinoy Online Venture'
 export const MEDIA_BUCKET = 'pov-media'
 
-// Must match the absolute URLs in index.html. Set VITE_SITE_URL in Vercel once a
-// custom domain is attached so shared links point at the real host.
-export const SITE_URL = (import.meta.env.VITE_SITE_URL?.trim() || 'https://pinoy-online-venture.vercel.app').replace(/\/$/, '')
+// Resolved at build time in vite.config.ts from VITE_SITE_URL or Vercel's own
+// production domain, so it always matches the absolute URLs in index.html.
+export const SITE_URL = (import.meta.env.VITE_SITE_URL?.trim() || '').replace(/\/$/, '')
 export const OG_IMAGE = `${SITE_URL}/brand/og-image.jpg`
 
 export const SOCIAL_DEFAULTS = {
