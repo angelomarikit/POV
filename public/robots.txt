@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+
+Sitemap: https://pinoy-online-venture.vercel.app/sitemap.xml
