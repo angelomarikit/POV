@@ -1,7 +1,9 @@
 import { SITE_SLUG } from '../config/site'
 import { TABLES } from '../config/tables'
 import { supabase } from '../lib/supabase'
-import type { ContactCTA, ContentSection, Event, Founder, GalleryItem, Member, MemberCategory, NewsArticle, SocialLink, Video } from '../types'
+import type { ContactCTA, ContentSection, Event, Founder, GalleryItem, Member, MemberCategory, NewsArticle, SocialLink, Video, VideoType } from '../types'
+import type { PresentationSettings } from '../types/presentation'
+import { DEFAULT_PRESENTATION_SETTINGS, PRESENTATION_SETTING_KEY } from '../types/presentation'
 
 async function dataOrThrow<T>(promise: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<T> {
   const { data, error } = await promise
@@ -20,6 +22,7 @@ export const queryKeys = {
   content: ['site-content', SITE_SLUG] as const,
   socials: ['social-links', SITE_SLUG] as const,
   ctas: ['contact-ctas', SITE_SLUG] as const,
+  presentation: ['presentation-settings', SITE_SLUG] as const,
 }
 
 // Aliased embeds keep the response keys (member_categories, event_gallery) stable
@@ -68,10 +71,76 @@ export async function getEventBySlug(slug: string) {
   )
 }
 
-export async function getVideos(includeUnpublished = false): Promise<Video[]> {
-  let query = supabase.from(TABLES.videos).select('*').eq('site_slug', SITE_SLUG).order('published_at', { ascending: false })
-  if (!includeUnpublished) query = query.eq('is_published', true)
-  return dataOrThrow<Video[]>(query)
+export async function getVideos(includeUnpublished = false, videoType?: VideoType): Promise<Video[]> {
+  const normalize = (rows: Video[]) => rows.map(video => ({
+    ...video,
+    video_type: video.video_type || 'general',
+    speaker_name: video.speaker_name ?? null,
+    duration_minutes: video.duration_minutes ?? null,
+    display_order: video.display_order ?? 0,
+  }))
+
+  try {
+    let query = supabase.from(TABLES.videos).select('*').eq('site_slug', SITE_SLUG).order('display_order').order('published_at', { ascending: false })
+    if (!includeUnpublished) query = query.eq('is_published', true)
+    if (videoType) query = query.eq('video_type', videoType)
+    return normalize(await dataOrThrow<Video[]>(query))
+  } catch {
+    // Before migration 004, video_type may not exist — fall back without the type filter.
+    let query = supabase.from(TABLES.videos).select('*').eq('site_slug', SITE_SLUG).order('published_at', { ascending: false })
+    if (!includeUnpublished) query = query.eq('is_published', true)
+    const rows = normalize(await dataOrThrow<Video[]>(query))
+    return videoType ? rows.filter(video => (video.video_type || 'general') === videoType) : rows
+  }
+}
+
+export async function getLibraryVideos(includeUnpublished = false) {
+  return getVideos(includeUnpublished, 'general')
+}
+
+export async function getTestimonialVideos(includeUnpublished = false) {
+  return getVideos(includeUnpublished, 'testimonial')
+}
+
+export async function getMainPresentation(includeUnpublished = false) {
+  const videos = await getVideos(includeUnpublished, 'presentation')
+  return videos.find(video => video.featured) || videos[0] || null
+}
+
+function normalizePresentationSettings(value: unknown): PresentationSettings {
+  const raw = (value && typeof value === 'object' ? value : {}) as Partial<PresentationSettings>
+  return {
+    ...DEFAULT_PRESENTATION_SETTINGS,
+    ...raw,
+    enabled: raw.enabled ?? DEFAULT_PRESENTATION_SETTINGS.enabled,
+    scheduling_enabled: raw.scheduling_enabled ?? DEFAULT_PRESENTATION_SETTINGS.scheduling_enabled,
+    is_published: raw.is_published ?? DEFAULT_PRESENTATION_SETTINGS.is_published,
+    interval_minutes: Number(raw.interval_minutes) || DEFAULT_PRESENTATION_SETTINGS.interval_minutes,
+    minimum_lead_minutes: Number(raw.minimum_lead_minutes) || DEFAULT_PRESENTATION_SETTINGS.minimum_lead_minutes,
+    maximum_advance_days: Number(raw.maximum_advance_days) || DEFAULT_PRESENTATION_SETTINGS.maximum_advance_days,
+  }
+}
+
+export async function getPresentationSettings(): Promise<PresentationSettings> {
+  try {
+    const row = await dataOrThrow<{ setting_value: unknown } | null>(
+      supabase.from(TABLES.settings).select('setting_value').eq('site_slug', SITE_SLUG).eq('setting_key', PRESENTATION_SETTING_KEY).maybeSingle(),
+    )
+    return normalizePresentationSettings(row?.setting_value)
+  } catch {
+    return DEFAULT_PRESENTATION_SETTINGS
+  }
+}
+
+export async function savePresentationSettings(settings: PresentationSettings) {
+  const payload = {
+    site_slug: SITE_SLUG,
+    setting_key: PRESENTATION_SETTING_KEY,
+    setting_value: settings,
+  }
+  return dataOrThrow(
+    supabase.from(TABLES.settings).upsert(payload, { onConflict: 'site_slug,setting_key' }).select(),
+  )
 }
 
 export async function getNews(includeUnpublished = false): Promise<NewsArticle[]> {

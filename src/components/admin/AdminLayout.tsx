@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, Crown, Images, LayoutDashboard, LogOut, Menu, MessageCircle, Newspaper, PanelsTopLeft, PlaySquare, Settings, Share2, Users, X } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Crown, Images, LayoutDashboard, LogOut, Menu, MessageCircle, Newspaper, PanelsTopLeft, PlaySquare, Presentation, Settings, Share2, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -13,6 +13,7 @@ const nav = [
   { to: '/admin/categories', label: 'Categories', icon: Users },
   { to: '/admin/events', label: 'Events', icon: CalendarDays },
   { to: '/admin/videos', label: 'Videos', icon: PlaySquare },
+  { to: '/admin/presentation', label: 'POV Presentation', icon: Presentation },
   { to: '/admin/news', label: 'News', icon: Newspaper },
   { to: '/admin/gallery', label: 'Gallery', icon: Images },
   { to: '/admin/media', label: 'Media library', icon: Images },

@@ -1,10 +1,10 @@
-import { ArrowRight, ChevronRight, Compass, Eye, HeartHandshake, Lightbulb, Play, Sparkles, Users } from 'lucide-react'
+import { ArrowRight, CalendarClock, ChevronRight, Compass, Eye, HeartHandshake, Lightbulb, Play, Sparkles, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQueries } from '@tanstack/react-query'
-import { EventCard, MemberCard, VideoCard } from '../components/public/Cards'
+import { EventCard, MemberCard } from '../components/public/Cards'
 import { EmptyState, MessengerCTA } from '../components/common/UI'
-import { getEvents, getGallery, getMembers, getSiteContent, getVideos, queryKeys } from '../services/content'
+import { getEvents, getGallery, getLibraryVideos, getMembers, getSiteContent, queryKeys } from '../services/content'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { SOCIAL_DEFAULTS } from '../config/site'
 
@@ -38,7 +38,7 @@ export default function HomePage() {
     { queryKey: queryKeys.content, queryFn: getSiteContent, enabled: isSupabaseConfigured, retry: false },
     { queryKey: queryKeys.members, queryFn: () => getMembers(), enabled: isSupabaseConfigured, retry: false },
     { queryKey: queryKeys.events, queryFn: () => getEvents(), enabled: isSupabaseConfigured, retry: false },
-    { queryKey: queryKeys.videos, queryFn: () => getVideos(), enabled: isSupabaseConfigured, retry: false },
+    { queryKey: queryKeys.videos, queryFn: () => getLibraryVideos(), enabled: isSupabaseConfigured, retry: false },
     { queryKey: queryKeys.gallery, queryFn: getGallery, enabled: isSupabaseConfigured, retry: false },
   ] })
   const content = results[0].data || []
@@ -67,7 +67,7 @@ export default function HomePage() {
         <p className="mt-4 text-[15px] leading-7 text-neutral-300">{hero?.subtitle || 'Meet the people, ideas, events, and real stories powering the Pinoy Online Venture community.'}</p>
         <div className="mt-7 grid gap-2.5">
           <Link to={hero?.button_url || '/community'} className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white transition active:scale-[.98]">{hero?.button_text || 'Explore our community'}<ArrowRight size={18} /></Link>
-          <Link to="/events#videos" className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 font-bold backdrop-blur transition active:scale-[.98]"><Play size={17} />Video Library</Link>
+          <Link to="/know-more" className="focus-ring inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 font-bold backdrop-blur transition active:scale-[.98]"><CalendarClock size={17} />Know More About POV</Link>
         </div>
       </motion.div>
     </section>
@@ -133,12 +133,13 @@ export default function HomePage() {
     </ScreenSection>
 
     <section className="bg-[#101012] px-5 py-9 text-white">
-      <div className="mb-5 flex items-end justify-between gap-3">
-        <div><p className="eyebrow">Watch and learn</p><h2 className="mt-1.5 text-[22px] font-black leading-tight tracking-tight">Stories and insight</h2></div>
-        <Link to="/events#videos" className="inline-flex shrink-0 items-center gap-0.5 text-sm font-bold text-orange-400">See all<ChevronRight size={16} /></Link>
+      <p className="eyebrow">Discover Pinoy Online Venture</p>
+      <h2 className="mt-1.5 text-[22px] font-black leading-tight tracking-tight">Know More About POV</h2>
+      <p className="mt-3 text-sm leading-6 text-neutral-400">Discover our community, hear real stories from our members, and watch the Pinoy Online Venture presentation at a time that works for you.</p>
+      <div className="mt-6 grid gap-2.5">
+        <Link to="/know-more" className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white transition active:scale-[.98]"><CalendarClock size={17} />Schedule your presentation</Link>
+        <Link to="/know-more" className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 font-bold transition active:scale-[.98]"><Play size={17} />Watch testimonials</Link>
       </div>
-      {videos.length ? <Rail>{videos.slice(0, 5).map(video => <div key={video.id} className={`shrink-0 snap-start ${videos.length === 1 ? 'w-full' : 'w-[85%]'}`}><VideoCard video={video} /></div>)}</Rail>
-        : <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center text-sm text-neutral-400"><Play className="mx-auto mb-3 text-orange-500" />Videos will appear here when published.</div>}
     </section>
 
     <section className="px-5 py-9">

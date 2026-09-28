@@ -105,6 +105,8 @@ export interface EventGalleryItem {
   display_order: number
 }
 
+export type VideoType = 'general' | 'testimonial' | 'presentation'
+
 export interface Video {
   id: string
   site_slug: string
@@ -115,6 +117,10 @@ export interface Video {
   thumbnail_url: string | null
   cta_label: string | null
   cta_url: string | null
+  video_type: VideoType
+  speaker_name: string | null
+  duration_minutes: number | null
+  display_order: number
   featured: boolean
   is_published: boolean
   published_at: string | null

@@ -18,6 +18,8 @@ const AdminLoginPage = lazy(() => import('../pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'))
 const AdminMediaPage = lazy(() => import('../pages/admin/AdminMediaPage'))
 const AdminContentPage = lazy(() => import('../pages/admin/AdminContentPage'))
+const AdminPresentationPage = lazy(() => import('../pages/admin/AdminPresentationPage'))
+const KnowMorePage = lazy(() => import('../pages/KnowMorePage'))
 
 function Load({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="grid min-h-[50svh] place-items-center"><div className="size-9 animate-spin rounded-full border-4 border-neutral-200 border-t-orange-500" /></div>}>{children}</Suspense>
@@ -33,7 +35,8 @@ export const router = createBrowserRouter([
       { path: 'founders', element: <Load><FoundersPage /></Load> },
       { path: 'events', element: <Load><EventsPage /></Load> },
       { path: 'events/:slug', element: <Load><EventDetailsPage /></Load> },
-      { path: 'videos', element: <Navigate to="/events#videos" replace /> },
+      { path: 'videos', element: <Navigate to="/know-more" replace /> },
+      { path: 'know-more', element: <Load><KnowMorePage /></Load> },
       { path: 'news', element: <Load><NewsPage /></Load> },
       { path: 'news/:slug', element: <Load><NewsDetailsPage /></Load> },
       { path: 'partnership', element: <Load><PartnershipPage /></Load> },
@@ -55,6 +58,7 @@ export const router = createBrowserRouter([
         { path: 'categories', element: <Load><AdminContentPage kind="categories" /></Load> },
         { path: 'events', element: <Load><AdminContentPage kind="events" /></Load> },
         { path: 'videos', element: <Load><AdminContentPage kind="videos" /></Load> },
+        { path: 'presentation', element: <Load><AdminPresentationPage /></Load> },
         { path: 'news', element: <Load><AdminContentPage kind="news" /></Load> },
         { path: 'gallery', element: <Load><AdminContentPage kind="gallery" /></Load> },
         { path: 'social', element: <Load><AdminContentPage kind="social" /></Load> },

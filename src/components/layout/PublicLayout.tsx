@@ -25,6 +25,7 @@ function useScreenTitle() {
   if (pathname.startsWith('/community/')) return { title: 'Profile', isRoot: false }
   if (pathname.startsWith('/events/')) return { title: 'Event', isRoot: false }
   if (pathname.startsWith('/news/')) return { title: 'News', isRoot: false }
+  if (pathname === '/know-more') return { title: 'Know More', isRoot: true }
   return { title: '', isRoot: false }
 }
 
