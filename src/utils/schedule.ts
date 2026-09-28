@@ -14,7 +14,7 @@ function combineLocalDateAndTime(date: Date, hours: number, minutes: number) {
 }
 
 /** Build upcoming start times within admin availability rules. */
-export function generateAvailableSlots(settings: PresentationSettings, from = new Date(), count = 48): Date[] {
+export function generateAvailableSlots(settings: PresentationSettings, from = new Date()): Date[] {
   const { hours: startH, minutes: startM } = parseHm(settings.availability_start)
   const { hours: endH, minutes: endM } = parseHm(settings.availability_end)
   const interval = Math.max(5, settings.interval_minutes || 30)
@@ -25,7 +25,7 @@ export function generateAvailableSlots(settings: PresentationSettings, from = ne
   lastDay.setDate(lastDay.getDate() + maxDays)
 
   const slots: Date[] = []
-  for (let dayOffset = 0; dayOffset <= maxDays && slots.length < count; dayOffset++) {
+  for (let dayOffset = 0; dayOffset <= maxDays; dayOffset++) {
     const day = startOfLocalDay(from)
     day.setDate(day.getDate() + dayOffset)
     if (day > lastDay) break
@@ -33,12 +33,45 @@ export function generateAvailableSlots(settings: PresentationSettings, from = ne
     let cursor = combineLocalDateAndTime(day, startH, startM)
     const dayEnd = combineLocalDateAndTime(day, endH, endM)
 
-    while (cursor <= dayEnd && slots.length < count) {
+    while (cursor <= dayEnd) {
       if (cursor >= earliest) slots.push(new Date(cursor))
       cursor = new Date(cursor.getTime() + interval * 60_000)
     }
   }
   return slots
+}
+
+/** Local-calendar day key (YYYY-MM-DD) for grouping slots. */
+export function dayKey(date: Date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+}
+
+export function groupSlotsByDay(slots: Date[]) {
+  const groups: Array<{ key: string; date: Date; slots: Date[] }> = []
+  for (const slot of slots) {
+    const key = dayKey(slot)
+    const existing = groups.find(group => group.key === key)
+    if (existing) existing.slots.push(slot)
+    else groups.push({ key, date: startOfLocalDay(slot), slots: [slot] })
+  }
+  return groups
+}
+
+export function formatDayChip(date: Date, now = new Date()) {
+  const today = startOfLocalDay(now)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const target = startOfLocalDay(date)
+  if (target.getTime() === today.getTime()) return { eyebrow: 'Today', label: formatShortDay(date) }
+  if (target.getTime() === tomorrow.getTime()) return { eyebrow: 'Tomorrow', label: formatShortDay(date) }
+  return {
+    eyebrow: new Intl.DateTimeFormat('en-PH', { weekday: 'short' }).format(date),
+    label: formatShortDay(date),
+  }
+}
+
+function formatShortDay(date: Date) {
+  return new Intl.DateTimeFormat('en-PH', { month: 'short', day: 'numeric' }).format(date)
 }
 
 export function validateScheduledAt(iso: string, settings: PresentationSettings, now = new Date()) {

@@ -19,9 +19,11 @@ import {
 import type { PresentationFlowState, PresentationSettings } from '../types/presentation'
 import type { Video } from '../types'
 import {
+  formatDayChip,
   formatPresentationDate,
   formatPresentationTime,
   generateAvailableSlots,
+  groupSlotsByDay,
   pad2,
   timezoneLabel,
   validateScheduledAt,
@@ -77,9 +79,18 @@ function TestimonialCard({ video }: { video: Video }) {
 }
 
 function Scheduler({ settings, onSchedule }: { settings: PresentationSettings; onSchedule: (iso: string) => void }) {
-  const slots = useMemo(() => generateAvailableSlots(settings), [settings])
-  const [selected, setSelected] = useState(slots[0]?.toISOString() || '')
+  const days = useMemo(() => groupSlotsByDay(generateAvailableSlots(settings)), [settings])
+  const [dayKeySelected, setDayKeySelected] = useState(days[0]?.key || '')
+  const selectedDay = days.find(day => day.key === dayKeySelected) || days[0]
+  const [selected, setSelected] = useState(selectedDay?.slots[0]?.toISOString() || '')
   const [error, setError] = useState('')
+
+  const pickDay = (key: string) => {
+    const day = days.find(item => item.key === key)
+    setDayKeySelected(key)
+    setSelected(day?.slots[0]?.toISOString() || '')
+    setError('')
+  }
 
   const submit = () => {
     const message = validateScheduledAt(selected, settings)
@@ -92,9 +103,11 @@ function Scheduler({ settings, onSchedule }: { settings: PresentationSettings; o
     track('presentation_schedule_created', { scheduledAt: selected })
   }
 
-  if (!slots.length) {
+  if (!days.length || !selectedDay) {
     return <div className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-neutral-300">No available presentation times right now. Please check back soon.</div>
   }
+
+  const chip = formatDayChip(selectedDay.date)
 
   return (
     <div className="rounded-[1.75rem] border border-orange-500/25 bg-gradient-to-b from-white/10 to-white/[.03] p-5 shadow-[0_30px_80px_-40px_rgba(249,115,22,.55)]">
@@ -105,22 +118,61 @@ function Scheduler({ settings, onSchedule }: { settings: PresentationSettings; o
           <h2 className="text-lg font-black text-white">When would you like to watch?</h2>
         </div>
       </div>
-      <label className="mt-5 block">
-        <span className="mb-2 block text-sm font-bold text-neutral-300">Available times · {timezoneLabel(settings.timezone)}</span>
-        <select
-          value={selected}
-          onChange={event => setSelected(event.target.value)}
-          className="focus-ring h-12 w-full rounded-xl border border-white/15 bg-[#111113] px-4 text-sm text-white outline-none"
-        >
-          {slots.map(slot => (
-            <option key={slot.toISOString()} value={slot.toISOString()}>
-              {formatPresentationDate(slot.toISOString(), settings.timezone)} · {formatPresentationTime(slot.toISOString(), settings.timezone)}
-            </option>
-          ))}
-        </select>
-      </label>
+
+      <div className="mt-5">
+        <p className="mb-2 text-sm font-bold text-neutral-300">1. Pick a day</p>
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {days.map(day => {
+            const label = formatDayChip(day.date)
+            const active = day.key === selectedDay.key
+            return (
+              <button
+                key={day.key}
+                type="button"
+                onClick={() => pickDay(day.key)}
+                className={`focus-ring min-w-[4.75rem] shrink-0 rounded-2xl border px-3 py-3 text-center transition ${active ? 'border-orange-500 bg-orange-500 text-white' : 'border-white/15 bg-black/30 text-neutral-300'}`}
+              >
+                <span className={`block text-[10px] font-bold uppercase tracking-wider ${active ? 'text-orange-100' : 'text-orange-400'}`}>{label.eyebrow}</span>
+                <span className="mt-1 block text-sm font-black">{label.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <div className="mb-2 flex items-end justify-between gap-3">
+          <p className="text-sm font-bold text-neutral-300">2. Pick a time</p>
+          <p className="text-[11px] text-neutral-500">{timezoneLabel(settings.timezone)}</p>
+        </div>
+        <p className="mb-3 text-xs text-neutral-400">{chip.eyebrow} · {formatPresentationDate(selectedDay.date.toISOString(), settings.timezone)}</p>
+        <div className="grid grid-cols-3 gap-2">
+          {selectedDay.slots.map(slot => {
+            const iso = slot.toISOString()
+            const active = selected === iso
+            return (
+              <button
+                key={iso}
+                type="button"
+                onClick={() => { setSelected(iso); setError('') }}
+                className={`focus-ring min-h-11 rounded-xl border px-2 text-sm font-bold transition ${active ? 'border-orange-500 bg-orange-500 text-white' : 'border-white/15 bg-black/30 text-neutral-200 active:bg-white/10'}`}
+              >
+                {formatPresentationTime(iso, settings.timezone)}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {selected && (
+        <p className="mt-4 rounded-xl border border-white/10 bg-black/25 px-3 py-2.5 text-center text-sm text-neutral-300">
+          Selected: <strong className="text-white">{formatPresentationTime(selected, settings.timezone)}</strong>
+          <span className="block text-xs text-neutral-500">{formatDayChip(new Date(selected)).eyebrow}, {formatDayChip(new Date(selected)).label}</span>
+        </p>
+      )}
+
       {error && <p className="mt-3 rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-300">{error}</p>}
-      <button type="button" onClick={submit} className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 text-sm font-bold text-white transition active:scale-[.98]">
+      <button type="button" onClick={submit} disabled={!selected} className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-50">
         Schedule presentation
       </button>
     </div>
