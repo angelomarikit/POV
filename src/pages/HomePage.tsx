@@ -42,9 +42,23 @@ export default function HomePage() {
   const gallery = results[4].data || []
   const hero = content.find(item => item.section_key === 'hero')
   const intro = content.find(item => item.section_key === 'about_intro')
+  const empire = content.find(item => item.section_key === 'empire' || item.section_key === 'about_story')
+  const ascendra = content.find(item => item.section_key === 'ascendra')
+  const council = content.find(item => item.section_key === 'council')
+  const mission = content.find(item => item.section_key === 'mission')
+  const vision = content.find(item => item.section_key === 'vision')
   const cta = content.find(item => item.section_key === 'cta')
   const featured = members.filter(member => member.featured)
   const hasStats = members.length > 0 || events.length > 0 || videos.length > 0
+
+  const empireTitle = empire?.title || 'What the Empire Represents'
+  const empireBody = empire?.body || 'A Space to Belong to – Creating a community where everyone feels valued, connected, and part of something bigger.'
+  const ascendraTitle = ascendra?.title || 'PINOY ONLINE VENTURE Powered by Ascendra International.'
+  const ascendraBody = ascendra?.body || 'A business solutions company designed to provide people with platforms, products, systems, and opportunities that support business growth and financial development.\n\nWithin this ecosystem, POV represents a unique community and culture—bringing people together to learn, grow, achieve, celebrate, and create meaningful experiences along the journey.'
+  const councilTitle = council?.title || 'PINOY ONLINE VENTURE Council'
+  const councilBody = council?.body || 'A dedicated leadership group that steers the POV’s direction, culture, execution, and continued growth—united by a shared commitment to serve the community, raise the standard, and move POV onward and upward.'
+  const missionBody = mission?.body || 'To equip, educate, and empower Filipinos to build meaningful opportunities and sustainable businesses through the power of digital technology and community.'
+  const visionBody = vision?.body || 'Empowered Filipinos. Digital Opportunities. Limitless Possibilities.'
 
   return <>
     <section className="relative isolate overflow-hidden bg-[#0b0b0c] px-5 pb-10 pt-8 text-white">
@@ -77,31 +91,33 @@ export default function HomePage() {
 
     <motion.section id="about" {...reveal} className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--muted)] px-5 py-9">
       <p className="eyebrow">Empire</p>
-      <h2 className="heading-section mt-2">What the Empire Represents</h2>
-      <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">A Space to Belong to – Creating a community where everyone feels valued, connected, and part of something bigger.</p>
+      <h2 className="heading-section mt-2">{empireTitle}</h2>
+      <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-[var(--text-secondary)]">{empireBody}</p>
+      {empire?.image_url && <img src={empire.image_url} alt={empireTitle} className="mt-5 aspect-[16/10] w-full rounded-3xl object-cover" />}
 
       <div className="mt-6 rounded-3xl border border-[var(--border)] bg-white p-5">
         <img src="/brand/ascendra.png" alt="Ascendra" className="h-9 w-auto object-contain object-left" />
-        <h3 className="mt-4 text-lg font-black leading-snug tracking-tight">PINOY ONLINE VENTURE Powered by Ascendra International.</h3>
-        <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">A business solutions company designed to provide people with platforms, products, systems, and opportunities that support business growth and financial development.</p>
-        <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">Within this ecosystem, POV represents a unique community and culture—bringing people together to learn, grow, achieve, celebrate, and create meaningful experiences along the journey.</p>
+        <h3 className="mt-4 text-lg font-black leading-snug tracking-tight">{ascendraTitle}</h3>
+        <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">{ascendraBody}</p>
+        {ascendra?.image_url && <img src={ascendra.image_url} alt={ascendraTitle} className="mt-5 aspect-[16/10] w-full rounded-2xl object-cover" />}
       </div>
 
       <div className="mt-4 rounded-3xl border border-[var(--border)] bg-white p-5">
-        <h3 className="text-lg font-black leading-snug tracking-tight">PINOY ONLINE VENTURE Council</h3>
-        <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">A dedicated leadership group that steers the POV’s direction, culture, execution, and continued growth—united by a shared commitment to serve the community, raise the standard, and move POV onward and upward.</p>
+        <h3 className="text-lg font-black leading-snug tracking-tight">{councilTitle}</h3>
+        <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">{councilBody}</p>
+        {council?.image_url && <img src={council.image_url} alt={councilTitle} className="mt-5 aspect-[16/10] w-full rounded-2xl object-cover" />}
       </div>
 
       <div className="mt-6 grid gap-3">
         <div className="card p-5">
           <Compass className="text-orange-600" size={25} />
           <p className="eyebrow mt-4">Mission</p>
-          <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">To equip, educate, and empower Filipinos to build meaningful opportunities and sustainable businesses through the power of digital technology and community.</p>
+          <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">{missionBody}</p>
         </div>
         <div className="card p-5">
           <Eye className="text-orange-600" size={25} />
           <p className="eyebrow mt-4">Vision</p>
-          <p className="mt-2 text-sm font-semibold leading-7 text-[var(--text-primary)]">Empowered Filipinos. Digital Opportunities. Limitless Possibilities.</p>
+          <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-7 text-[var(--text-primary)]">{visionBody}</p>
         </div>
       </div>
     </motion.section>

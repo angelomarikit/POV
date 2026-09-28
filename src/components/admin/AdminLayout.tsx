@@ -19,7 +19,7 @@ const nav = [
   { to: '/admin/media', label: 'Media library', icon: Images },
   { to: '/admin/social', label: 'Social links', icon: Share2 },
   { to: '/admin/contacts', label: 'CTA / Messenger', icon: MessageCircle },
-  { to: '/admin/settings', label: 'About content', icon: Settings },
+  { to: '/admin/settings', label: 'Empire & About', icon: Settings },
 ]
 
 export function AdminLayout() {
