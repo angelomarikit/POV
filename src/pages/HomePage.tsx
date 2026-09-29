@@ -1,64 +1,48 @@
-import { ArrowRight, CalendarClock, ChevronRight, Compass, Eye, Play, Sparkles } from 'lucide-react'
+import { ArrowRight, CalendarClock, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useQueries } from '@tanstack/react-query'
-import { EventCard, MemberCard } from '../components/public/Cards'
-import { EmptyState, MessengerCTA } from '../components/common/UI'
-import { getEvents, getGallery, getLibraryVideos, getMembers, getSiteContent, queryKeys } from '../services/content'
+import { useQuery } from '@tanstack/react-query'
+import { MessengerCTA } from '../components/common/UI'
+import { getSiteContent, queryKeys } from '../services/content'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { SOCIAL_DEFAULTS } from '../config/site'
 
-const reveal = { initial: { opacity: 0, y: 18 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-60px' }, transition: { duration: .45 } }
-
-function ScreenSection({ eyebrow, title, to, action, children }: { eyebrow: string; title: string; to?: string; action?: string; children: React.ReactNode }) {
-  return <motion.section {...reveal} className="px-5 py-8">
-    <div className="mb-5 flex items-end justify-between gap-3">
-      <div>
-        <p className="eyebrow">{eyebrow}</p>
-        <h2 className="mt-1.5 text-[22px] font-black leading-tight tracking-tight">{title}</h2>
-      </div>
-      {to && <Link to={to} className="focus-ring inline-flex shrink-0 items-center gap-0.5 rounded-full text-sm font-bold text-orange-700">{action || 'See all'}<ChevronRight size={16} /></Link>}
-    </div>
-    {children}
-  </motion.section>
+function paragraphs(text: string | null | undefined, fallback: string[]) {
+  const parts = (text || '').split(/\n\s*\n/).map(part => part.trim()).filter(Boolean)
+  return parts.length ? parts : fallback
 }
 
-function Rail({ children }: { children: React.ReactNode }) {
-  return <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{children}</div>
-}
+const DEFAULT_ABOUT_INTRO = [
+  'Pinoy Online Venture (POV) is a growing community designed to help Filipinos explore the opportunities of the online world, develop valuable digital skills, and build a mindset focused on growth and purposeful entrepreneurship.',
+  'We believe that everyone deserves an opportunity to learn, grow, and create possibilities online—whether you are an employee, OFW, student, parent, professional, or aspiring entrepreneur.',
+  'Through the POV Community, we provide access to learning sessions, mentorship, community support, digital tools, business education, and practical strategies that can help members take meaningful steps toward their personal and entrepreneurial goals.',
+]
+
+const DEFAULT_STAND_FOR = [
+  'We encourage our members to continuously develop their skills, build meaningful connections, take consistent action, and support one another along the journey.',
+  'POV is more than just a community. It is a space where ideas become action, skills become opportunities, and people grow together.',
+  'Welcome to POV Community — your online journey starts here.',
+]
 
 export default function HomePage() {
-  const results = useQueries({ queries: [
-    { queryKey: queryKeys.content, queryFn: getSiteContent, enabled: isSupabaseConfigured, retry: false },
-    { queryKey: queryKeys.members, queryFn: () => getMembers(), enabled: isSupabaseConfigured, retry: false },
-    { queryKey: queryKeys.events, queryFn: () => getEvents(), enabled: isSupabaseConfigured, retry: false },
-    { queryKey: queryKeys.videos, queryFn: () => getLibraryVideos(), enabled: isSupabaseConfigured, retry: false },
-    { queryKey: queryKeys.gallery, queryFn: getGallery, enabled: isSupabaseConfigured, retry: false },
-  ] })
-  const content = results[0].data || []
-  const members = results[1].data || []
-  const events = results[2].data || []
-  const videos = results[3].data || []
-  const gallery = results[4].data || []
-  const hero = content.find(item => item.section_key === 'hero')
-  const intro = content.find(item => item.section_key === 'about_intro')
-  const empire = content.find(item => item.section_key === 'empire' || item.section_key === 'about_story')
-  const ascendra = content.find(item => item.section_key === 'ascendra')
-  const council = content.find(item => item.section_key === 'council')
-  const mission = content.find(item => item.section_key === 'mission')
-  const vision = content.find(item => item.section_key === 'vision')
-  const cta = content.find(item => item.section_key === 'cta')
-  const featured = members.filter(member => member.featured)
-  const hasStats = members.length > 0 || events.length > 0 || videos.length > 0
+  const { data: content = [] } = useQuery({
+    queryKey: queryKeys.content,
+    queryFn: getSiteContent,
+    enabled: isSupabaseConfigured,
+    retry: false,
+  })
+  const section = (key: string) => content.find(item => item.section_key === key)
+  const hero = section('hero')
+  const about = section('about_us')
+  const purpose = section('about_purpose')
+  const standFor = section('about_stand_for')
+  const knowMore = section('know_more_promo')
+  const cta = section('cta')
 
-  const empireTitle = empire?.title || 'What the Empire Represents'
-  const empireBody = empire?.body || 'A Space to Belong to – Creating a community where everyone feels valued, connected, and part of something bigger.'
-  const ascendraTitle = ascendra?.title || 'PINOY ONLINE VENTURE Powered by Ascendra International.'
-  const ascendraBody = ascendra?.body || 'A business solutions company designed to provide people with platforms, products, systems, and opportunities that support business growth and financial development.\n\nWithin this ecosystem, POV represents a unique community and culture—bringing people together to learn, grow, achieve, celebrate, and create meaningful experiences along the journey.'
-  const councilTitle = council?.title || 'PINOY ONLINE VENTURE Council'
-  const councilBody = council?.body || 'A dedicated leadership group that steers the POV’s direction, culture, execution, and continued growth—united by a shared commitment to serve the community, raise the standard, and move POV onward and upward.'
-  const missionBody = mission?.body || 'To equip, educate, and empower Filipinos to build meaningful opportunities and sustainable businesses through the power of digital technology and community.'
-  const visionBody = vision?.body || 'Empowered Filipinos. Digital Opportunities. Limitless Possibilities.'
+  const aboutParas = paragraphs(about?.body, DEFAULT_ABOUT_INTRO)
+  const standParas = paragraphs(standFor?.body, DEFAULT_STAND_FOR)
+  const welcome = standParas[standParas.length - 1]
+  const standBody = standParas.length > 1 ? standParas.slice(0, -1) : standParas
 
   return <>
     <section className="relative isolate overflow-hidden bg-[#0b0b0c] px-5 pb-10 pt-8 text-white">
@@ -77,79 +61,34 @@ export default function HomePage() {
       </motion.div>
     </section>
 
-    {hasStats && <section className="grid grid-cols-3 divide-x divide-[var(--border)] border-b border-[var(--border)] bg-white py-5 text-center">
-      <div><strong className="block text-2xl font-black">{members.length}</strong><span className="mt-0.5 block text-[11px] text-neutral-500">Members</span></div>
-      <div><strong className="block text-2xl font-black">{events.length}</strong><span className="mt-0.5 block text-[11px] text-neutral-500">Events</span></div>
-      <div><strong className="block text-2xl font-black">{videos.length}</strong><span className="mt-0.5 block text-[11px] text-neutral-500">Videos</span></div>
+    {(about?.is_active !== false) && <section className="px-5 py-9">
+      <p className="eyebrow">{about?.subtitle || 'About Us'}</p>
+      <h2 className="heading-section mt-2 text-balance">{about?.title || 'Pinoy Online Venture (POV) Community'}</h2>
+      <div className="mt-5 space-y-4 text-[15px] leading-7 text-[var(--text-secondary)]">
+        {aboutParas.map(para => <p key={para.slice(0, 48)}>{para}</p>)}
+      </div>
+
+      {(purpose?.is_active !== false) && <div className="mt-8 border-t border-[var(--border)] pt-7">
+        <p className="eyebrow">{purpose?.title || 'Our Purpose'}</p>
+        <p className="mt-3 text-[15px] leading-7 text-[var(--text-primary)]">{purpose?.body || 'To build a community where Filipinos can learn, connect, take action, and grow together in the digital economy.'}</p>
+      </div>}
+
+      {(standFor?.is_active !== false) && <div className="mt-8 border-t border-[var(--border)] pt-7">
+        <p className="eyebrow">{standFor?.title || 'What We Stand For'}</p>
+        <p className="mt-3 text-lg font-black tracking-tight text-[var(--text-primary)]">{standFor?.subtitle || 'Learn. Connect. Take Action. Grow.'}</p>
+        <div className="mt-4 space-y-4 text-[15px] leading-7 text-[var(--text-secondary)]">
+          {standBody.map(para => <p key={para.slice(0, 48)}>{para}</p>)}
+          {standParas.length > 1 && <p className="font-semibold text-[var(--text-primary)]">{welcome}</p>}
+        </div>
+      </div>}
     </section>}
 
-    <motion.section {...reveal} className="px-5 py-8">
-      <p className="eyebrow">Community</p>
-      <h2 className="heading-section mt-2">POV is a place where you don’t have to build alone.</h2>
-      <img src={intro?.image_url || '/brand/executive-edge.png'} alt="Pinoy Online Venture community" className="mt-6 aspect-[4/3] w-full rounded-3xl object-cover" />
-    </motion.section>
-
-    <motion.section id="about" {...reveal} className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--muted)] px-5 py-9">
-      <p className="eyebrow">Empire</p>
-      <h2 className="heading-section mt-2">{empireTitle}</h2>
-      <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-[var(--text-secondary)]">{empireBody}</p>
-      {empire?.image_url && <img src={empire.image_url} alt={empireTitle} className="mt-5 aspect-[16/10] w-full rounded-3xl object-cover" />}
-
-      <div className="mt-6 rounded-3xl border border-[var(--border)] bg-white p-5">
-        <img src="/brand/ascendra.png" alt="Ascendra" className="h-9 w-auto object-contain object-left" />
-        <h3 className="mt-4 text-lg font-black leading-snug tracking-tight">{ascendraTitle}</h3>
-        <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">{ascendraBody}</p>
-        {ascendra?.image_url && <img src={ascendra.image_url} alt={ascendraTitle} className="mt-5 aspect-[16/10] w-full rounded-2xl object-cover" />}
-      </div>
-
-      <div className="mt-4 rounded-3xl border border-[var(--border)] bg-white p-5">
-        <h3 className="text-lg font-black leading-snug tracking-tight">{councilTitle}</h3>
-        <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">{councilBody}</p>
-        {council?.image_url && <img src={council.image_url} alt={councilTitle} className="mt-5 aspect-[16/10] w-full rounded-2xl object-cover" />}
-      </div>
-
-      <div className="mt-6 grid gap-3">
-        <div className="card p-5">
-          <Compass className="text-orange-600" size={25} />
-          <p className="eyebrow mt-4">Mission</p>
-          <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">{missionBody}</p>
-        </div>
-        <div className="card p-5">
-          <Eye className="text-orange-600" size={25} />
-          <p className="eyebrow mt-4">Vision</p>
-          <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-7 text-[var(--text-primary)]">{visionBody}</p>
-        </div>
-      </div>
-    </motion.section>
-
-    <ScreenSection eyebrow="People of POV" title="Meet the community" to="/community" action="See all">
-      {featured.length ? <Rail>{featured.slice(0, 6).map(member => <div key={member.id} className={`shrink-0 snap-start ${featured.length === 1 ? 'w-full' : 'w-[72%]'}`}><MemberCard member={member} /></div>)}</Rail>
-        : <EmptyState title="Community profiles are coming" description="Featured members will appear here as soon as they are published." />}
-    </ScreenSection>
-
-    {gallery.length > 0 && <ScreenSection eyebrow="Inside the community" title="Moments that move us forward">
-      <div className="grid grid-cols-2 gap-2.5">
-        {gallery.slice(0, 5).map((item, index) => <figure key={item.id} className={`relative overflow-hidden rounded-2xl ${index === 0 ? 'col-span-2 aspect-[16/10]' : 'aspect-square'}`}>
-          <img src={item.image_url} alt={item.caption || item.title || 'Community activity'} loading="lazy" className="size-full object-cover" />
-          {(item.title || item.caption) && <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-3 pt-10 text-xs font-bold text-white">{item.title || item.caption}</figcaption>}
-        </figure>)}
-      </div>
-    </ScreenSection>}
-
-    <ScreenSection eyebrow="What's happening" title="Community events" to="/events">
-      {events.length ? <div className="grid gap-4">{events.slice(0, 2).map(event => <EventCard key={event.id} event={event} />)}</div>
-        : <EmptyState title="No published events yet" description="Upcoming community events will be announced here." />}
-    </ScreenSection>
-
-    <section className="bg-[#101012] px-5 py-9 text-white">
-      <p className="eyebrow">Discover Pinoy Online Venture</p>
-      <h2 className="mt-1.5 text-[22px] font-black leading-tight tracking-tight">Know More About POV</h2>
-      <p className="mt-3 text-sm leading-6 text-neutral-400">Discover our community, hear real stories from our members, and watch the Pinoy Online Venture presentation at a time that works for you.</p>
-      <div className="mt-6 grid gap-2.5">
-        <Link to="/know-more" className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white transition active:scale-[.98]"><CalendarClock size={17} />Schedule your presentation</Link>
-        <Link to="/know-more" className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 font-bold transition active:scale-[.98]"><Play size={17} />Watch testimonials</Link>
-      </div>
-    </section>
+    {(knowMore?.is_active !== false) && <section className="bg-[#101012] px-5 py-9 text-white">
+      <p className="eyebrow !text-orange-400">{knowMore?.subtitle || 'Discover Pinoy Online Venture'}</p>
+      <h2 className="mt-1.5 text-[22px] font-black leading-tight tracking-tight">{knowMore?.title || 'Know More About POV'}</h2>
+      <p className="mt-3 text-sm leading-6 text-neutral-400">{knowMore?.body || 'Discover our community, hear real stories from our members, and watch the Pinoy Online Venture presentation at a time that works for you.'}</p>
+      <Link to={knowMore?.button_url || '/know-more'} className="focus-ring mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white transition active:scale-[.98]"><CalendarClock size={17} />{knowMore?.button_text || 'Know More About POV'}</Link>
+    </section>}
 
     <section className="px-5 py-9">
       <div className="rounded-3xl bg-orange-500 p-7 text-white">

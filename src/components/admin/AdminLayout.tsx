@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, Crown, Images, LayoutDashboard, LogOut, Menu, MessageCircle, Newspaper, PanelsTopLeft, PlaySquare, Presentation, Settings, Share2, Users, X } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Crown, Images, LayoutDashboard, LogOut, Menu, MessageCircle, Newspaper, PanelsTopLeft, PlaySquare, Presentation, Settings, Share2, Users, UsersRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -8,6 +8,7 @@ import { AppShell } from '../layout/AppShell'
 const nav = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/homepage', label: 'Homepage', icon: PanelsTopLeft },
+  { to: '/admin/community-page', label: 'Community page', icon: UsersRound },
   { to: '/admin/members', label: 'Members', icon: Users },
   { to: '/admin/founders', label: 'Founders', icon: Crown },
   { to: '/admin/categories', label: 'Categories', icon: Users },
@@ -19,7 +20,7 @@ const nav = [
   { to: '/admin/media', label: 'Media library', icon: Images },
   { to: '/admin/social', label: 'Social links', icon: Share2 },
   { to: '/admin/contacts', label: 'CTA / Messenger', icon: MessageCircle },
-  { to: '/admin/settings', label: 'Empire & About', icon: Settings },
+  { to: '/admin/settings', label: 'About Us', icon: Settings },
 ]
 
 export function AdminLayout() {

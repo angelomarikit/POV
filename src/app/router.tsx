@@ -53,6 +53,7 @@ export const router = createBrowserRouter([
       children: [
         { index: true, element: <Load><AdminDashboardPage /></Load> },
         { path: 'homepage', element: <Load><AdminContentPage kind="homepage" /></Load> },
+        { path: 'community-page', element: <Load><AdminContentPage kind="community" /></Load> },
         { path: 'members', element: <Load><AdminContentPage kind="members" /></Load> },
         { path: 'founders', element: <Load><AdminContentPage kind="founders" /></Load> },
         { path: 'categories', element: <Load><AdminContentPage kind="categories" /></Load> },
