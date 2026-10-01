@@ -65,17 +65,23 @@ export function MessengerCTA({ label, url, variant = 'primary', className }: { l
   )}><MessageCircle size={18} />{label?.trim() || 'Message us'}</a>
 }
 
-// Click-to-play facade: the iframe is only mounted once the visitor presses play,
-// so the video opens in the app instead of sending them to YouTube.
-export function YouTubeEmbed({ url, title, poster, rounded = true }: { url: string; title: string; poster?: string | null; rounded?: boolean }) {
-  const [playing, setPlaying] = useState(false)
+// Click-to-play by default. When autoPlay is true (e.g. countdown finished), the
+// iframe mounts immediately with YouTube autoplay. Mute is required for reliable
+// autoplay without a fresh user gesture; visitors can unmute in the player.
+export function YouTubeEmbed({ url, title, poster, rounded = true, autoPlay = false }: { url: string; title: string; poster?: string | null; rounded?: boolean; autoPlay?: boolean }) {
+  const [playing, setPlaying] = useState(autoPlay)
   const embedUrl = getYouTubeEmbedUrl(url)
   const image = poster || getYouTubeThumbnail(url)
   const shape = rounded ? 'rounded-2xl' : ''
   if (!embedUrl) return <div className={clsx('grid aspect-video place-items-center bg-neutral-100 text-sm text-neutral-500', shape)}>Video URL is unavailable.</div>
-  if (playing) return <div className={clsx('aspect-video overflow-hidden bg-black', shape)}>
-    <iframe className="size-full" src={`${embedUrl}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} title={title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
-  </div>
+  if (playing) {
+    const params = autoPlay
+      ? 'autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1'
+      : 'autoplay=1&rel=0&modestbranding=1&playsinline=1'
+    return <div className={clsx('aspect-video overflow-hidden bg-black', shape)}>
+      <iframe className="size-full" src={`${embedUrl}?${params}`} title={title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+    </div>
+  }
   return <button type="button" onClick={() => setPlaying(true)} aria-label={`Play video: ${title}`} className={clsx('group relative block aspect-video w-full overflow-hidden bg-neutral-950', shape)}>
     {image && <img src={image} alt="" loading="lazy" className="size-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-75" />}
     <span className="absolute inset-0 grid place-items-center">

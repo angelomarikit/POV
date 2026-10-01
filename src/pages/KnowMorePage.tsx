@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarClock, CheckCircle2, Clock3, MessageCircle, Play, Sparkles, Users } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { EmptyState, MessengerCTA, YouTubeEmbed } from '../components/common/UI'
 import { useCountdown } from '../hooks/useCountdown'
 import { usePresentationSchedule } from '../hooks/usePresentationSchedule'
@@ -28,7 +28,7 @@ import {
   timezoneLabel,
   validateScheduledAt,
 } from '../utils/schedule'
-import { getYouTubeThumbnail } from '../utils/youtube'
+import { extractYouTubeVideoId, getYouTubeThumbnail } from '../utils/youtube'
 
 function track(event: string, detail?: Record<string, unknown>) {
   window.dispatchEvent(new CustomEvent('pov-analytics', { detail: { event, ...detail } }))
@@ -201,9 +201,20 @@ export default function KnowMorePage() {
   const ctasQuery = useQuery({ queryKey: queryKeys.ctas, queryFn: getContactCtas, enabled: isSupabaseConfigured, retry: false })
 
   const settings = settingsQuery.data
-  const presentation = presentationQuery.data
+  const catalogPresentation = presentationQuery.data
   const testimonials = testimonialsQuery.data || []
   const messenger = settings?.cta_url || ctasQuery.data?.find(item => item.is_active)?.messenger_url || SOCIAL_DEFAULTS.facebook
+
+  const settingsYoutubeUrl = settings?.presentation_youtube_url?.trim() || ''
+  const waitingYoutubeUrl = settings?.waiting_youtube_url?.trim() || ''
+  const hasWaitingVideo = Boolean(extractYouTubeVideoId(waitingYoutubeUrl))
+  const presentationUrl = extractYouTubeVideoId(settingsYoutubeUrl)
+    ? settingsYoutubeUrl
+    : catalogPresentation?.youtube_url || ''
+  const presentationTitle = settings?.presentation_title || catalogPresentation?.title || 'Pinoy Online Venture Presentation'
+  const presentationDescription = settings?.presentation_description || catalogPresentation?.description || ''
+  const presentationPoster = catalogPresentation?.thumbnail_url || (presentationUrl ? getYouTubeThumbnail(presentationUrl) : null)
+  const hasPresentation = Boolean(presentationUrl)
 
   useDocumentMeta(
     settings?.section_title || 'Know More About POV',
@@ -221,7 +232,30 @@ export default function KnowMorePage() {
   })
 
   const [confirmReschedule, setConfirmReschedule] = useState(false)
-  const [readyBannerDismissed, setReadyBannerDismissed] = useState(false)
+  const autoStartedRef = useRef(false)
+
+  // When countdown hits zero, open the presentation player and autoplay immediately.
+  useEffect(() => {
+    if (!scheduleApi.hydrated || scheduleApi.completed || scheduleApi.watching) return
+    if (!scheduleApi.scheduledAt || !countdown.isReady || !hasPresentation) return
+    if (autoStartedRef.current) return
+    autoStartedRef.current = true
+    scheduleApi.startWatching()
+    track('presentation_unlocked')
+    track('presentation_started', { auto: true })
+  }, [
+    scheduleApi.hydrated,
+    scheduleApi.completed,
+    scheduleApi.watching,
+    scheduleApi.scheduledAt,
+    scheduleApi.startWatching,
+    countdown.isReady,
+    hasPresentation,
+  ])
+
+  useEffect(() => {
+    if (!countdown.isReady) autoStartedRef.current = false
+  }, [countdown.isReady])
 
   const recommended = useMemo(() => {
     if (!scheduleApi.scheduledAt || countdown.isReady) return testimonials
@@ -249,7 +283,7 @@ export default function KnowMorePage() {
 
   const tz = settings.timezone
   const ctaLabel = settings.cta_label || 'Message us'
-  const showReadyBanner = state === 'ready' && !readyBannerDismissed
+  const autoPlayPresentation = state === 'watching' && !scheduleApi.completed
 
   return (
     <div className="bg-[#0b0b0c] text-white">
@@ -269,10 +303,10 @@ export default function KnowMorePage() {
           settings.scheduling_enabled
             ? <Scheduler settings={settings} onSchedule={iso => scheduleApi.schedule(iso)} />
             : <div className="rounded-[1.75rem] border border-orange-500/25 bg-white/5 p-5">
-                <h2 className="text-xl font-black">{settings.presentation_title}</h2>
-                <p className="mt-2 text-sm text-neutral-400">{settings.presentation_description}</p>
-                {!presentation
-                  ? <p className="mt-5 rounded-xl bg-white/5 p-4 text-sm text-neutral-400">The main presentation has not been published yet.</p>
+                <h2 className="text-xl font-black">{presentationTitle}</h2>
+                <p className="mt-2 text-sm text-neutral-400">{presentationDescription}</p>
+                {!hasPresentation
+                  ? <p className="mt-5 rounded-xl bg-white/5 p-4 text-sm text-neutral-400">Add a YouTube URL in Admin → POV Presentation.</p>
                   : <button
                       type="button"
                       onClick={() => {
@@ -287,77 +321,103 @@ export default function KnowMorePage() {
               </div>
         )}
 
-        {(state === 'waiting' || state === 'ready') && scheduleApi.scheduledAt && (
+        {state === 'waiting' && scheduleApi.scheduledAt && (
           <div className="space-y-5">
             <div className="rounded-[1.75rem] border border-orange-500/25 bg-gradient-to-b from-orange-500/10 to-transparent p-5">
               <p className="text-[10px] font-bold uppercase tracking-[.18em] text-orange-400">Your presentation is scheduled</p>
               <p className="mt-2 text-lg font-black">{formatPresentationDate(scheduleApi.scheduledAt, tz)}</p>
               <p className="text-sm text-neutral-300">{formatPresentationTime(scheduleApi.scheduledAt, tz)} · {timezoneLabel(tz)}</p>
 
-              <AnimatePresence mode="wait">
-                {state === 'waiting' ? (
-                  <motion.div key="waiting" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-6">
-                    <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-[.2em] text-neutral-400">Your presentation starts in</p>
-                    <CountdownDisplay {...countdown.parts} />
-                  </motion.div>
-                ) : (
-                  <motion.div key="ready" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="mt-6 text-center" role="status" aria-live="polite">
-                    <span className="mx-auto grid size-14 place-items-center rounded-full bg-orange-500 text-white"><CheckCircle2 size={28} /></span>
-                    <h2 className="mt-4 text-2xl font-black">Your presentation is ready</h2>
-                    <p className="mt-2 text-sm text-neutral-400">Thank you for waiting. Your Pinoy Online Venture presentation is now available.</p>
-                    <button
-                      type="button"
-                      onClick={() => { scheduleApi.startWatching(); track('presentation_unlocked'); track('presentation_started') }}
-                      className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white"
-                    >
-                      <Play size={18} fill="currentColor" />Watch presentation
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
+                <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-[.2em] text-neutral-400">Your presentation starts in</p>
+                <CountdownDisplay {...countdown.parts} />
+              </motion.div>
 
               <button type="button" onClick={() => setConfirmReschedule(true)} className="mt-5 w-full text-center text-sm font-semibold text-neutral-400 underline-offset-2 hover:text-orange-300 hover:underline">
                 Change schedule
               </button>
             </div>
 
-            {/* Keep testimonials mounted through waiting → ready so an in-progress clip is not killed. */}
             <div>
               <p className="eyebrow">While you wait</p>
-              <h2 className="mt-1.5 text-xl font-black">Meet the people behind Pinoy Online Venture</h2>
-              <p className="mt-2 text-sm text-neutral-400">Recommended while you wait.</p>
+              <h2 className="mt-1.5 text-xl font-black">{settings.waiting_title || 'While you wait'}</h2>
+              <p className="mt-2 text-sm text-neutral-400">{settings.waiting_description || 'Watch this video while your presentation countdown is running.'}</p>
+
+              {hasWaitingVideo ? (
+                <article className="mt-5 overflow-hidden rounded-3xl border border-white/10 bg-white/5">
+                  <YouTubeEmbed
+                    url={waitingYoutubeUrl}
+                    title={settings.waiting_title || 'Waiting room video'}
+                    poster={getYouTubeThumbnail(waitingYoutubeUrl)}
+                    rounded={false}
+                  />
+                </article>
+              ) : null}
+
               {recommended.length ? (
-                <div className="mt-5 grid gap-4">{recommended.map(video => <TestimonialCard key={video.id} video={video} />)}</div>
-              ) : (
+                <div className={`grid gap-4 ${hasWaitingVideo ? 'mt-4' : 'mt-5'}`}>
+                  {recommended.map(video => <TestimonialCard key={video.id} video={video} />)}
+                </div>
+              ) : !hasWaitingVideo ? (
                 <div className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-neutral-400">
                   Your presentation is scheduled. Please return when the countdown reaches zero.
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         )}
 
-        {(state === 'watching' || state === 'completed') && (
+        {(state === 'ready' || state === 'watching' || state === 'completed') && (
           <div className="space-y-5">
-            {!presentation ? (
-              <EmptyState title="Presentation unavailable" description="The main POV presentation has not been configured yet. Please contact the team." />
-            ) : (
-              <article className="overflow-hidden rounded-[1.75rem] border border-orange-500/20 bg-[#111113]">
-                <YouTubeEmbed url={presentation.youtube_url} title={presentation.title} poster={presentation.thumbnail_url || getYouTubeThumbnail(presentation.youtube_url)} rounded={false} />
-                <div className="p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-[.18em] text-orange-400">Main presentation</p>
-                  <h2 className="mt-2 text-2xl font-black">{settings.presentation_title || presentation.title}</h2>
-                  <p className="mt-3 text-sm leading-6 text-neutral-400">{settings.presentation_description || presentation.description}</p>
-                  <div className="mt-6">
-                    <MessengerCTA label={ctaLabel} url={messenger} className="w-full" />
+            {state === 'ready' && (
+              <div className="rounded-[1.75rem] border border-orange-500/25 bg-gradient-to-b from-orange-500/10 to-transparent p-5 text-center" role="status" aria-live="polite">
+                <span className="mx-auto grid size-14 place-items-center rounded-full bg-orange-500 text-white"><CheckCircle2 size={28} /></span>
+                <h2 className="mt-4 text-2xl font-black">Your presentation is ready</h2>
+                <p className="mt-2 text-sm text-neutral-400">
+                  {hasPresentation ? 'Starting your Pinoy Online Venture presentation…' : 'Add a YouTube URL in Admin → POV Presentation.'}
+                </p>
+                {hasPresentation && (
+                  <button
+                    type="button"
+                    onClick={() => { scheduleApi.startWatching(); track('presentation_unlocked'); track('presentation_started') }}
+                    className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white"
+                  >
+                    <Play size={18} fill="currentColor" />Watch presentation
+                  </button>
+                )}
+              </div>
+            )}
+
+            {(state === 'watching' || state === 'completed') && (
+              !hasPresentation ? (
+                <EmptyState title="Presentation unavailable" description="Add a YouTube URL in Admin → POV Presentation, or publish a Presentation video." />
+              ) : (
+                <article className="overflow-hidden rounded-[1.75rem] border border-orange-500/20 bg-[#111113]">
+                  <YouTubeEmbed
+                    url={presentationUrl}
+                    title={presentationTitle}
+                    poster={presentationPoster}
+                    rounded={false}
+                    autoPlay={autoPlayPresentation}
+                  />
+                  <div className="p-5">
+                    <p className="text-[10px] font-bold uppercase tracking-[.18em] text-orange-400">Main presentation</p>
+                    <h2 className="mt-2 text-2xl font-black">{presentationTitle}</h2>
+                    {presentationDescription && <p className="mt-3 text-sm leading-6 text-neutral-400">{presentationDescription}</p>}
+                    {autoPlayPresentation && (
+                      <p className="mt-3 text-xs text-neutral-500">Video starts automatically (muted so browsers allow playback). Tap the speaker icon on the player to unmute.</p>
+                    )}
+                    <div className="mt-6">
+                      <MessengerCTA label={ctaLabel} url={messenger} className="w-full" />
+                    </div>
+                    {state === 'watching' && (
+                      <button type="button" onClick={() => scheduleApi.markCompleted()} className="mt-4 w-full text-sm font-semibold text-neutral-400 underline-offset-2 hover:text-orange-300 hover:underline">
+                        I’ve finished watching
+                      </button>
+                    )}
                   </div>
-                  {state === 'watching' && (
-                    <button type="button" onClick={() => scheduleApi.markCompleted()} className="mt-4 w-full text-sm font-semibold text-neutral-400 underline-offset-2 hover:text-orange-300 hover:underline">
-                      I’ve finished watching
-                    </button>
-                  )}
-                </div>
-              </article>
+                </article>
+              )
             )}
 
             {state === 'completed' && (
@@ -377,24 +437,6 @@ export default function KnowMorePage() {
         )}
       </section>
 
-      {showReadyBanner && (
-        <div className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-3" role="status" aria-live="polite">
-          <div className="flex w-full max-w-[var(--app-width)] items-center gap-3 rounded-2xl border border-orange-400/40 bg-[#111113] p-3 shadow-2xl">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wider text-orange-400">Your POV presentation is ready</p>
-              <p className="truncate text-sm text-neutral-300">Finish your video or start now.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { setReadyBannerDismissed(true); scheduleApi.startWatching(); track('presentation_unlocked') }}
-              className="shrink-0 rounded-xl bg-orange-500 px-3 py-2 text-xs font-bold"
-            >
-              Watch
-            </button>
-          </div>
-        </div>
-      )}
-
       {confirmReschedule && (
         <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-5" role="dialog" aria-modal="true">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-[var(--text-primary)]">
@@ -402,7 +444,7 @@ export default function KnowMorePage() {
             <p className="mt-2 text-sm text-neutral-600">This will replace your current presentation time and reset the countdown.</p>
             <div className="mt-6 flex gap-3">
               <button type="button" onClick={() => setConfirmReschedule(false)} className="focus-ring flex-1 rounded-full border border-neutral-200 py-3 text-sm font-bold">Cancel</button>
-              <button type="button" onClick={() => { scheduleApi.clearSchedule(); setConfirmReschedule(false); setReadyBannerDismissed(false) }} className="focus-ring flex-1 rounded-full bg-orange-500 py-3 text-sm font-bold text-white">Change</button>
+              <button type="button" onClick={() => { scheduleApi.clearSchedule(); setConfirmReschedule(false); autoStartedRef.current = false }} className="focus-ring flex-1 rounded-full bg-orange-500 py-3 text-sm font-bold text-white">Change</button>
             </div>
           </div>
         </div>

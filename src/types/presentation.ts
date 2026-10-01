@@ -8,8 +8,12 @@ export interface PresentationSettings {
   section_title: string
   headline: string
   description: string
+  waiting_title: string
+  waiting_description: string
+  waiting_youtube_url: string
   presentation_title: string
   presentation_description: string
+  presentation_youtube_url: string
   cta_label: string
   cta_url: string | null
   availability_start: string
@@ -37,8 +41,12 @@ export const DEFAULT_PRESENTATION_SETTINGS: PresentationSettings = {
   section_title: 'Know More About POV',
   headline: 'Discover the Community Behind the Vision',
   description: 'Choose a convenient time to watch our Pinoy Online Venture presentation. While you wait, explore real stories and testimonials from our community.',
+  waiting_title: 'While you wait',
+  waiting_description: 'Watch this video while your presentation countdown is running.',
+  waiting_youtube_url: '',
   presentation_title: 'Pinoy Online Venture Presentation',
   presentation_description: 'Learn about our community, opportunities, and how you can be part of the journey.',
+  presentation_youtube_url: '',
   cta_label: 'Message us',
   cta_url: null,
   availability_start: '08:00',

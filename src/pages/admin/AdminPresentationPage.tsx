@@ -5,6 +5,7 @@ import { ExternalLink, Save } from 'lucide-react'
 import { Button } from '../../components/common/UI'
 import { getPresentationSettings, queryKeys, savePresentationSettings } from '../../services/content'
 import { DEFAULT_PRESENTATION_SETTINGS, type PresentationSettings } from '../../types/presentation'
+import { extractYouTubeVideoId } from '../../utils/youtube'
 
 export default function AdminPresentationPage() {
   const client = useQueryClient()
@@ -18,7 +19,21 @@ export default function AdminPresentationPage() {
   }, [data])
 
   const save = useMutation({
-    mutationFn: () => savePresentationSettings(values),
+    mutationFn: async () => {
+      const waitingUrl = values.waiting_youtube_url.trim()
+      const presentationUrl = values.presentation_youtube_url.trim()
+      if (waitingUrl && !extractYouTubeVideoId(waitingUrl)) {
+        throw new Error('Waiting-room YouTube URL is invalid. Use a watch, Shorts, youtu.be, or embed link.')
+      }
+      if (presentationUrl && !extractYouTubeVideoId(presentationUrl)) {
+        throw new Error('Main presentation YouTube URL is invalid. Use a watch, Shorts, youtu.be, or embed link.')
+      }
+      return savePresentationSettings({
+        ...values,
+        waiting_youtube_url: waitingUrl,
+        presentation_youtube_url: presentationUrl,
+      })
+    },
     onSuccess: async () => {
       await client.invalidateQueries({ queryKey: queryKeys.presentation })
       setError('')
@@ -47,7 +62,7 @@ export default function AdminPresentationPage() {
         <div>
           <p className="text-sm font-bold text-orange-600">Content management</p>
           <h1 className="mt-1 text-3xl font-black tracking-tight">POV Presentation</h1>
-          <p className="mt-2 text-sm text-neutral-500">Control Know More About POV: intro copy, schedule rules, and Messenger CTA.</p>
+          <p className="mt-2 text-sm text-neutral-500">Set the waiting-room video and the main presentation video (after countdown), plus schedule and CTA options.</p>
         </div>
         <Link to="/know-more" target="_blank" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 text-sm font-bold">
           <ExternalLink size={16} />View public page
@@ -66,11 +81,24 @@ export default function AdminPresentationPage() {
         </section>
 
         <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-          <h2 className="text-lg font-black">Main presentation copy</h2>
-          <p className="mt-1 text-sm text-neutral-500">The YouTube video itself is managed in <Link to="/admin/videos" className="font-bold text-orange-700">Videos</Link> — set Video type to <strong>Presentation</strong> and publish it.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[.16em] text-orange-600">Video 1 · During countdown</p>
+          <h2 className="mt-1 text-lg font-black">Waiting-room video</h2>
+          <p className="mt-1 text-sm text-neutral-500">Shown on Know More while visitors wait for their scheduled presentation time.</p>
           <div className="mt-4 space-y-4">
-            <Field label="Presentation title" value={values.presentation_title} onChange={value => set('presentation_title', value)} />
-            <Area label="Presentation description" value={values.presentation_description} onChange={value => set('presentation_description', value)} />
+            <Field label="YouTube URL" type="url" value={values.waiting_youtube_url} onChange={value => set('waiting_youtube_url', value)} />
+            <Field label="Title" value={values.waiting_title} onChange={value => set('waiting_title', value)} />
+            <Area label="Description" value={values.waiting_description} onChange={value => set('waiting_description', value)} />
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+          <p className="text-[10px] font-bold uppercase tracking-[.16em] text-orange-600">Video 2 · After countdown</p>
+          <h2 className="mt-1 text-lg font-black">Main presentation video</h2>
+          <p className="mt-1 text-sm text-neutral-500">Appears automatically when the countdown finishes and starts playing right away.</p>
+          <div className="mt-4 space-y-4">
+            <Field label="YouTube URL" type="url" value={values.presentation_youtube_url} onChange={value => set('presentation_youtube_url', value)} />
+            <Field label="Title" value={values.presentation_title} onChange={value => set('presentation_title', value)} />
+            <Area label="Description" value={values.presentation_description} onChange={value => set('presentation_description', value)} />
           </div>
         </section>
 
@@ -78,7 +106,7 @@ export default function AdminPresentationPage() {
           <h2 className="text-lg font-black">Schedule settings</h2>
           <div className="mt-4 space-y-4">
             <Toggle label="Scheduling enabled" checked={values.scheduling_enabled} onChange={checked => set('scheduling_enabled', checked)} />
-            <p className="text-xs text-neutral-500">If scheduling is off, visitors can watch the presentation immediately.</p>
+            <p className="text-xs text-neutral-500">If scheduling is off, visitors can watch the main presentation immediately.</p>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Available from" type="time" value={values.availability_start} onChange={value => set('availability_start', value)} />
               <Field label="Available until" type="time" value={values.availability_end} onChange={value => set('availability_end', value)} />
@@ -109,8 +137,8 @@ export default function AdminPresentationPage() {
         </section>
 
         <section className="rounded-2xl border border-dashed border-orange-200 bg-orange-50 p-5 text-sm text-neutral-700">
-          <strong className="block font-black text-orange-800">Testimonials</strong>
-          <p className="mt-2">Add waiting-room videos in <Link to="/admin/videos" className="font-bold text-orange-700">Videos</Link>. Set Video type to <strong>Testimonial</strong>, add speaker name and duration in minutes, then publish.</p>
+          <strong className="block font-black text-orange-800">Extra testimonial clips (optional)</strong>
+          <p className="mt-2">You can still add more waiting-room clips in <Link to="/admin/videos" className="font-bold text-orange-700">Videos</Link> (type <strong>Testimonial</strong>). They appear under the main waiting video.</p>
         </section>
 
         {message && <p className="rounded-xl bg-green-50 p-3 text-sm text-green-700">{message}</p>}
