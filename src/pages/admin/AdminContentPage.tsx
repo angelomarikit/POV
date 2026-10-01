@@ -1,11 +1,11 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type DragEvent, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Edit3, Plus, Trash2, X } from 'lucide-react'
+import { Edit3, GripVertical, Plus, Trash2, X } from 'lucide-react'
 import { Button, ConfirmDialog, EmptyState, ImageUploader } from '../../components/common/UI'
 import { TABLES } from '../../config/tables'
 import {
   deleteRecord, getAllSiteContent, getContactCtas, getEvents, getFounders, getGallery, getMemberCategories, getMembers,
-  getNews, getSocialLinks, getVideos, isSlugAvailable, queryKeys, saveRecord,
+  getNews, getSocialLinks, getVideos, isSlugAvailable, queryKeys, saveRecord, updateDisplayOrders,
 } from '../../services/content'
 import { generateSlug, withSlugSuffix } from '../../utils/slug'
 import { extractYouTubeVideoId } from '../../utils/youtube'
@@ -17,7 +17,7 @@ interface Config { title: string; singular: string; table: string; key: readonly
 
 const baseConfigs: Record<Kind, Omit<Config, 'fields'> & { fields: Field[] }> = {
   members: { title: 'Community members', singular: 'member', table: TABLES.members, key: queryKeys.members, load: () => getMembers(true), nameKey: 'name', fields: [
-    { key: 'name', label: 'Full name', type: 'text', required: true }, { key: 'slug', label: 'URL slug', type: 'text', help: 'Created automatically from the name.' }, { key: 'role', label: 'Role or title', type: 'text', help: 'Shown under the name on the Community grid (example: Founder & President).' }, { key: 'category_id', label: 'Member category', type: 'select' }, { key: 'profile_image_url', label: 'Profile image', type: 'image', folder: 'members', help: 'Use a clear portrait photo. This is the main image on Community.' }, { key: 'short_description', label: 'Short introduction', type: 'textarea' }, { key: 'bio', label: 'Full biography', type: 'textarea' }, { key: 'company', label: 'Business or company', type: 'text' }, { key: 'occupation', label: 'Occupation', type: 'text' }, { key: 'location', label: 'Location', type: 'text' }, { key: 'messenger_url', label: 'Messenger link', type: 'url' }, { key: 'facebook_url', label: 'Facebook link', type: 'url' }, { key: 'tiktok_url', label: 'TikTok link', type: 'url' }, { key: 'youtube_url', label: 'YouTube link', type: 'url' }, { key: 'website_url', label: 'Website', type: 'url' }, { key: 'joined_at', label: 'Join date', type: 'date' }, { key: 'featured', label: 'Top leadership row', type: 'checkbox', help: 'Turn on for up to 2 leaders. They appear larger in the top row of Community (and on Home if featured).' }, { key: 'is_active', label: 'Visible on public site', type: 'checkbox' }, { key: 'display_order', label: 'Display order', type: 'number', help: 'Lower numbers appear first within the top row and within the grid.' },
+    { key: 'name', label: 'Full name', type: 'text', required: true }, { key: 'slug', label: 'URL slug', type: 'text', help: 'Created automatically from the name.' }, { key: 'role', label: 'Role or title', type: 'text', help: 'Shown under the name on the Community grid (example: Founder & President).' }, { key: 'category_id', label: 'Member category', type: 'select' }, { key: 'profile_image_url', label: 'Profile image', type: 'image', folder: 'members', help: 'Use a clear portrait photo. This is the main image on Community.' }, { key: 'short_description', label: 'Short introduction', type: 'textarea' }, { key: 'bio', label: 'Full biography', type: 'textarea' }, { key: 'company', label: 'Business or company', type: 'text' }, { key: 'occupation', label: 'Occupation', type: 'text' }, { key: 'location', label: 'Location', type: 'text' }, { key: 'messenger_url', label: 'Messenger link', type: 'url' }, { key: 'facebook_url', label: 'Facebook link', type: 'url' }, { key: 'tiktok_url', label: 'TikTok link', type: 'url' }, { key: 'youtube_url', label: 'YouTube link', type: 'url' }, { key: 'website_url', label: 'Website', type: 'url' }, { key: 'joined_at', label: 'Join date', type: 'date' }, { key: 'featured', label: 'Top leadership row', type: 'checkbox', help: 'Optional. Council layout uses drag order: #1 and #2 are the large Vision/Management photos.' }, { key: 'is_active', label: 'Visible on public site', type: 'checkbox' }, { key: 'display_order', label: 'Display order', type: 'number', help: 'Auto-updated when you drag the list. #1–#2 = large photos; remaining members use the 3-column grid.' },
   ]},
   founders: { title: 'Founders', singular: 'founder', table: TABLES.founders, key: queryKeys.founders, load: () => getFounders(true), nameKey: 'name', fields: [
     { key: 'name', label: 'Full name', type: 'text', required: true }, { key: 'slug', label: 'URL slug', type: 'text', help: 'Created automatically from the name.' }, { key: 'role', label: 'Role or title', type: 'text' }, { key: 'image_url', label: 'Founder photo', type: 'image', folder: 'members' }, { key: 'short_description', label: 'Short introduction', type: 'textarea' }, { key: 'bio', label: 'Full story or biography', type: 'textarea' }, { key: 'messenger_url', label: 'Messenger link', type: 'url' }, { key: 'facebook_url', label: 'Facebook link', type: 'url' }, { key: 'website_url', label: 'Website', type: 'url' }, { key: 'display_order', label: 'Display order', type: 'number' }, { key: 'is_active', label: 'Visible on public site', type: 'checkbox' },
@@ -44,7 +44,7 @@ const baseConfigs: Record<Kind, Omit<Config, 'fields'> & { fields: Field[] }> = 
       { value: 'community_council', label: 'POV Council heading' },
     ], help: 'These sections appear only on the public Community page.' },
     { key: 'title', label: 'Heading', type: 'text', required: true },
-    { key: 'subtitle', label: 'Tagline / council labels', type: 'textarea', help: 'Hero: tagline under Community. POV Council: use Founders|Management for the two top boxes.' },
+    { key: 'subtitle', label: 'Tagline / council labels', type: 'textarea', help: 'Hero: tagline under Community. POV Council: use The People Behind the Vision|Management for labels above the first two large photos.' },
     { key: 'body', label: 'Content', type: 'textarea', help: 'Mission, Vision, and optional supporting text under image sections.' },
     { key: 'image_url', label: 'Picture', type: 'image', folder: 'branding', help: 'Used by hero, represents, and Ascendra sections.' },
     { key: 'is_active', label: 'Visible', type: 'checkbox' },
@@ -98,15 +98,53 @@ export default function AdminContentPage({ kind }: { kind: Kind }) {
     return saveRecord(config.table, payload, id)
   }, onSuccess: async () => { await client.invalidateQueries({ queryKey: config.key }); setEditing(null) }, onError: reason => setError(reason instanceof Error ? reason.message : 'Unable to save this item.') })
   const remove = useMutation({ mutationFn: () => deleteRecord(config.table, String(deleting?.id)), onSuccess: async () => { await client.invalidateQueries({ queryKey: config.key }); setDeleting(null) } })
-  const filteredList = (list.data || []).filter(item => {
-    if (kind === 'homepage') return ['hero', 'know_more_promo', 'cta'].includes(String((item as Record<string, unknown>).section_key))
-    if (kind === 'community') return ['community_intro', 'community_mission', 'community_vision', 'community_represents', 'community_ascendra', 'community_council'].includes(String((item as Record<string, unknown>).section_key))
-    if (kind === 'settings') return ['about_us', 'about_purpose', 'about_stand_for'].includes(String((item as Record<string, unknown>).section_key))
-    return true
-  }) as Record<string, unknown>[]
+  const canReorder = config.fields.some(field => field.key === 'display_order')
+  const filteredList = useMemo(() => {
+    const rows = (list.data || []).filter(item => {
+      if (kind === 'homepage') return ['hero', 'know_more_promo', 'cta'].includes(String((item as Record<string, unknown>).section_key))
+      if (kind === 'community') return ['community_intro', 'community_mission', 'community_vision', 'community_represents', 'community_ascendra', 'community_council'].includes(String((item as Record<string, unknown>).section_key))
+      if (kind === 'settings') return ['about_us', 'about_purpose', 'about_stand_for'].includes(String((item as Record<string, unknown>).section_key))
+      return true
+    }) as Record<string, unknown>[]
+    if (!canReorder) return rows
+    return [...rows].sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0) || String(a[config.nameKey] || '').localeCompare(String(b[config.nameKey] || '')))
+  }, [list.data, kind, canReorder, config.nameKey])
+  const [orderedItems, setOrderedItems] = useState<Record<string, unknown>[] | null>(null)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [reorderError, setReorderError] = useState('')
+  useEffect(() => { setOrderedItems(null); setReorderError('') }, [list.dataUpdatedAt, kind])
+  const displayItems = orderedItems || filteredList
+  const reorder = useMutation({
+    mutationFn: (items: Record<string, unknown>[]) => updateDisplayOrders(config.table, items.map(item => String(item.id))),
+    onSuccess: async () => { await client.invalidateQueries({ queryKey: config.key }); setReorderError('') },
+    onError: reason => setReorderError(reason instanceof Error ? reason.message : 'Unable to save the new order.'),
+  })
 
-  return <div><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-bold text-orange-600">Content management</p><h1 className="mt-1 text-3xl font-black tracking-tight">{config.title}</h1><p className="mt-2 text-sm text-neutral-500">Create, update, reorder, publish, or hide content without editing code.</p></div><Button onClick={() => setEditing({ ...blankRecord })}><Plus size={18} />Add {config.singular}</Button></div>
-    {list.isLoading ? <div className="skeleton h-64 rounded-2xl" /> : filteredList.length ? <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white"><div className="divide-y divide-neutral-100">{filteredList.map(item => <div key={String(item.id)} className="flex items-center gap-4 p-4"><ItemThumb item={item} /><div className="min-w-0 flex-1"><strong className="block truncate">{String(item[config.nameKey] || item.section_key || 'Untitled')}</strong><span className="block truncate text-xs text-neutral-500">{String(item.section_key || item.role || item.platform || item.short_description || item.caption || item.slug || '')}</span></div><button aria-label="Edit" onClick={() => setEditing(item)} className="grid size-10 place-items-center rounded-xl border border-neutral-200 hover:bg-neutral-50"><Edit3 size={17} /></button><button aria-label="Delete" onClick={() => setDeleting(item)} className="grid size-10 place-items-center rounded-xl border border-red-100 text-red-600 hover:bg-red-50"><Trash2 size={17} /></button></div>)}</div></div> : <EmptyState title={`No ${config.title.toLowerCase()} yet`} description={`Add your first ${config.singular} to get started.`} action={<Button onClick={() => setEditing({ ...blankRecord })}><Plus size={18} />Add {config.singular}</Button>} />}
+  const onDragStart = (index: number) => setDragIndex(index)
+  const onDragOver = (event: DragEvent, index: number) => {
+    if (!canReorder || dragIndex === null || dragIndex === index) return
+    event.preventDefault()
+    setOrderedItems(current => {
+      const items = [...(current || filteredList)]
+      const [moved] = items.splice(dragIndex, 1)
+      items.splice(index, 0, moved)
+      setDragIndex(index)
+      return items
+    })
+  }
+  const onDragEnd = () => {
+    if (!canReorder) return
+    setDragIndex(null)
+    setOrderedItems(current => {
+      const items = current || filteredList
+      void reorder.mutateAsync(items)
+      return items
+    })
+  }
+
+  return <div><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-bold text-orange-600">Content management</p><h1 className="mt-1 text-3xl font-black tracking-tight">{config.title}</h1><p className="mt-2 text-sm text-neutral-500">{canReorder ? 'Drag rows to set sequence. For members: #1 and #2 show as the same-size large photos on Community; the rest use a 3-column grid.' : 'Create, update, reorder, publish, or hide content without editing code.'}</p></div><Button onClick={() => setEditing({ ...blankRecord })}><Plus size={18} />Add {config.singular}</Button></div>
+    {reorderError && <p className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{reorderError}</p>}
+    {list.isLoading ? <div className="skeleton h-64 rounded-2xl" /> : displayItems.length ? <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white"><div className="divide-y divide-neutral-100">{displayItems.map((item, index) => <div key={String(item.id)} draggable={canReorder} onDragStart={() => onDragStart(index)} onDragOver={event => onDragOver(event, index)} onDragEnd={onDragEnd} className={`flex items-center gap-3 p-4 ${dragIndex === index ? 'bg-orange-50' : ''} ${canReorder ? 'cursor-grab active:cursor-grabbing' : ''}`}>{canReorder && <span className="text-neutral-400" aria-hidden><GripVertical size={18} /></span>}{canReorder && <span className="w-5 shrink-0 text-center text-xs font-bold text-orange-600">{index + 1}</span>}<ItemThumb item={item} /><div className="min-w-0 flex-1"><strong className="block truncate">{String(item[config.nameKey] || item.section_key || 'Untitled')}</strong><span className="block truncate text-xs text-neutral-500">{kind === 'members' && index < 2 ? 'Council top row (large) · ' : ''}{String(item.section_key || item.role || item.platform || item.short_description || item.caption || item.slug || '')}</span></div><button aria-label="Edit" onClick={() => setEditing(item)} className="grid size-10 place-items-center rounded-xl border border-neutral-200 hover:bg-neutral-50"><Edit3 size={17} /></button><button aria-label="Delete" onClick={() => setDeleting(item)} className="grid size-10 place-items-center rounded-xl border border-red-100 text-red-600 hover:bg-red-50"><Trash2 size={17} /></button></div>)}</div></div> : <EmptyState title={`No ${config.title.toLowerCase()} yet`} description={`Add your first ${config.singular} to get started.`} action={<Button onClick={() => setEditing({ ...blankRecord })}><Plus size={18} />Add {config.singular}</Button>} />}
     {editing && <EditorModal config={config} initial={editing} busy={save.isPending} error={error} onClose={() => { setEditing(null); setError('') }} onSave={values => save.mutate(values)} />}
     <ConfirmDialog open={Boolean(deleting)} title={`Delete ${String(deleting?.[config.nameKey] || config.singular)}?`} description="This action cannot be undone. Any shared storage images are preserved to prevent accidental file loss." busy={remove.isPending} onCancel={() => setDeleting(null)} onConfirm={() => remove.mutate()} />
   </div>

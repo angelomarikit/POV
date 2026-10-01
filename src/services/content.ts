@@ -185,6 +185,12 @@ export async function saveRecord(table: string, values: Record<string, unknown>,
   return dataOrThrow<Record<string, unknown>[]>(query.select())
 }
 
+export async function updateDisplayOrders(table: string, orderedIds: string[]) {
+  await Promise.all(orderedIds.map((id, index) =>
+    dataOrThrow(supabase.from(table).update({ display_order: index }).eq('id', id).eq('site_slug', SITE_SLUG).select('id')),
+  ))
+}
+
 export async function deleteRecord(table: string, id: string) {
   return dataOrThrow<unknown>(supabase.from(table).delete().eq('id', id).eq('site_slug', SITE_SLUG))
 }

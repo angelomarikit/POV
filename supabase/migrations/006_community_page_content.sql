@@ -66,7 +66,7 @@ values
     'pinoy-online-venture',
     'community_council',
     'POV Council',
-    'Founders|Management',
+    'The People Behind the Vision|Management',
     null,
     null,
     null,
