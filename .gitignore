@@ -17,6 +17,10 @@ dist-ssr
 *.pem
 *.key
 
+# Windows reserved device names (accidental CLI redirects like `> NUL`)
+/NUL
+/nul
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

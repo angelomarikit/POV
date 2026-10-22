@@ -2,6 +2,9 @@ export const SITE_SLUG = import.meta.env.VITE_SITE_SLUG?.trim() || 'pinoy-online
 export const SITE_NAME = 'Pinoy Online Venture'
 export const MEDIA_BUCKET = 'pov-media'
 
+/** Canonical public domain for shareable site QR / “visit the site” links (not Vercel). */
+export const PUBLIC_SITE_URL = 'https://pinoyonlineventures.com'
+
 // Resolved at build time in vite.config.ts from VITE_SITE_URL or Vercel's own
 // production domain, so it always matches the absolute URLs in index.html.
 export const SITE_URL = (import.meta.env.VITE_SITE_URL?.trim() || '').replace(/\/$/, '')

@@ -80,9 +80,9 @@ QR settings are on **Admin → QR Events** (separate from **Admin → Events**).
 
 1. Create/publish the event under **Admin → Events**.
 2. Open **Admin → QR Events** → **Configure QR event**.
-3. Enable QR pass registration (and optional public popup + delay).
+3. Enable QR pass registration, and optionally **Show on Home page**.
 4. Download the **registration QR** (or copy the register link) to share/print.
-5. Guest registers → POV generates their **confirmation QR / pass code**.
+5. Guest registers from Home or the register link → POV generates their **confirmation QR**.
 6. Staff opens `/admin/staff` and scans that confirmation QR to check them in.
 
 ## 3. Add frontend environment values

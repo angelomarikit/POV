@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { MessengerCTA } from '../components/common/UI'
+import { HomeQrEventsSection } from '../components/public/HomeQrEventsSection'
 import { getSiteContent, queryKeys } from '../services/content'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { SOCIAL_DEFAULTS } from '../config/site'
@@ -60,6 +61,8 @@ export default function HomePage() {
         </div>
       </motion.div>
     </section>
+
+    <HomeQrEventsSection />
 
     {(about?.is_active !== false) && <section className="px-5 py-9">
       <p className="eyebrow">{about?.subtitle || 'About Us'}</p>

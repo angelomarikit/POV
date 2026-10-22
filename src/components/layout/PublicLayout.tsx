@@ -1,11 +1,10 @@
-import { CalendarDays, ChevronLeft, Crown, HeartHandshake, Home, LogIn, Menu, MessageCircle, Music2, Newspaper, PlaySquare, Users, X } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Crown, HeartHandshake, Home, LogIn, Menu, MessageCircle, Music2, Newspaper, PlaySquare, QrCode, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { getSocialLinks, queryKeys } from '../../services/content'
 import { SOCIAL_DEFAULTS } from '../../config/site'
-import { RegistrationPromoPopup } from '../public/RegistrationPromoPopup'
 import { AppShell } from './AppShell'
 
 const tabs = [
@@ -13,6 +12,7 @@ const tabs = [
   { to: '/community', label: 'Community', icon: Users },
   { to: '/founders', label: 'Founders', icon: Crown },
   { to: '/events', label: 'Events', icon: CalendarDays },
+  { to: '/qr', label: 'QR', icon: QrCode },
   { to: '/news', label: 'News', icon: Newspaper },
   { to: '/partnership', label: 'Partnership', icon: HeartHandshake },
   { to: '/admin/login', label: 'Login', icon: LogIn },
@@ -29,6 +29,7 @@ function useScreenTitle() {
   if (pathname.startsWith('/events/')) return { title: 'Event', isRoot: false }
   if (pathname.startsWith('/news/')) return { title: 'News', isRoot: false }
   if (pathname === '/know-more') return { title: 'Know More', isRoot: true }
+  if (pathname === '/qr') return { title: 'QR', isRoot: true }
   return { title: '', isRoot: false }
 }
 
@@ -75,8 +76,6 @@ export function PublicLayout() {
         {pathname !== '/partnership' && <AppFooter />}
       </main>
 
-      <RegistrationPromoPopup />
-
       <AnimatePresence>
         {menuOpen && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] flex justify-center bg-black/60">
           <div className="w-full max-w-[var(--app-width)]">
@@ -93,12 +92,12 @@ export function PublicLayout() {
       </AnimatePresence>
 
       <nav className="app-dock border-t border-black/10 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_34px_rgba(0,0,0,.1)] backdrop-blur-xl" aria-label="App navigation">
-        {/* Seven tabs: sizing is tightened so the longest label still fits on a small phone. */}
-        <div className="grid grid-cols-7">
-          {tabs.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `focus-ring relative flex min-h-16 flex-col items-center justify-center gap-1 px-0.5 text-[9px] font-bold tracking-tight transition ${isActive ? 'text-orange-600' : 'text-neutral-500'}`}>
+        {/* Eight tabs: sizing is tightened so labels still fit on a small phone. */}
+        <div className="grid grid-cols-8">
+          {tabs.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `focus-ring relative flex min-h-16 flex-col items-center justify-center gap-1 px-0 text-[8px] font-bold tracking-tight transition ${isActive ? 'text-orange-600' : 'text-neutral-500'}`}>
             {({ isActive }) => <>
-              {isActive && <motion.span layoutId="tab-indicator" className="absolute top-0 h-[3px] w-7 rounded-b-full bg-orange-500" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-              <Icon size={19} strokeWidth={isActive ? 2.6 : 2} />
+              {isActive && <motion.span layoutId="tab-indicator" className="absolute top-0 h-[3px] w-6 rounded-b-full bg-orange-500" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+              <Icon size={18} strokeWidth={isActive ? 2.6 : 2} />
               <span className="w-full truncate text-center">{label}</span>
             </>}
           </NavLink>)}

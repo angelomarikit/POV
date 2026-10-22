@@ -24,6 +24,7 @@ const AdminQrEventsPage = lazy(() => import('../pages/admin/AdminQrEventsPage'))
 const KnowMorePage = lazy(() => import('../pages/KnowMorePage'))
 const EventRegisterPage = lazy(() => import('../pages/EventRegisterPage'))
 const EventPassPage = lazy(() => import('../pages/EventPassPage'))
+const SiteQrPage = lazy(() => import('../pages/SiteQrPage'))
 
 function Load({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="grid min-h-[50svh] place-items-center"><div className="size-9 animate-spin rounded-full border-4 border-neutral-200 border-t-orange-500" /></div>}>{children}</Suspense>
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
       { path: 'news', element: <Load><NewsPage /></Load> },
       { path: 'news/:slug', element: <Load><NewsDetailsPage /></Load> },
       { path: 'partnership', element: <Load><PartnershipPage /></Load> },
+      { path: 'qr', element: <Load><SiteQrPage /></Load> },
       { path: 'about', element: <Navigate to="/#about" replace /> },
       { path: '*', element: <Load><NotFoundPage /></Load> },
     ],

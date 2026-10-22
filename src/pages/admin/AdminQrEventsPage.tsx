@@ -78,7 +78,7 @@ export default function AdminQrEventsPage() {
         <p className="text-sm font-bold text-orange-600">QR pass system</p>
         <h1 className="mt-1 text-3xl font-black tracking-tight">QR Events</h1>
         <p className="mt-2 text-sm text-neutral-500">
-          POV generates both QRs: a <strong>registration QR</strong> (opens the form) and each guest’s <strong>confirmation QR</strong> after submit — Staff Console scans that for check-in.
+          POV generates both QRs: a <strong>registration QR</strong> (opens the form) and each guest’s <strong>confirmation QR</strong> after submit. Turn on <strong>Show on Home page</strong> to list the event in a Home section (no popup).
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link to="/admin/events" className="focus-ring inline-flex min-h-10 items-center rounded-full border border-neutral-200 bg-white px-4 text-sm font-bold">
@@ -97,7 +97,7 @@ export default function AdminQrEventsPage() {
         </div>
         <div className="rounded-2xl border border-neutral-200 bg-white p-4">
           <p className="text-2xl font-black">{events.filter(e => e.show_registration_popup).length}</p>
-          <p className="text-xs font-semibold text-neutral-500">Popup enabled</p>
+          <p className="text-xs font-semibold text-neutral-500">Shown on Home</p>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export default function AdminQrEventsPage() {
         <div className="space-y-3">
           {events.map(event => {
             const live = Boolean(event.registration_enabled)
-            const popup = Boolean(event.show_registration_popup)
+            const onHome = Boolean(event.show_registration_popup)
             return (
               <article key={event.id} className="rounded-2xl border border-neutral-200 bg-white p-4">
                 <div className="flex gap-3">
@@ -122,7 +122,7 @@ export default function AdminQrEventsPage() {
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${live ? 'bg-orange-50 text-orange-600' : 'bg-neutral-100 text-neutral-500'}`}>
                         {live ? 'QR on' : 'QR off'}
                       </span>
-                      {popup && <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-700">Popup</span>}
+                      {onHome && <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-700">Home</span>}
                     </div>
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-neutral-500">
                       <CalendarDays size={13} />
@@ -133,11 +133,8 @@ export default function AdminQrEventsPage() {
                         <MapPin size={13} />{event.location}
                       </p>
                     )}
-                    {live && (
-                      <p className="mt-2 text-xs text-neutral-500">
-                        Delay {Number(event.registration_popup_delay_seconds ?? 3)}s
-                        {event.pass_brand_label ? ` · Brand ${event.pass_brand_label}` : ''}
-                      </p>
+                    {live && event.pass_brand_label && (
+                      <p className="mt-2 text-xs text-neutral-500">Brand {event.pass_brand_label}</p>
                     )}
                   </div>
                 </div>
@@ -193,8 +190,8 @@ export default function AdminQrEventsPage() {
 
               <label className="flex items-center justify-between rounded-xl border border-neutral-200 p-4">
                 <span>
-                  <span className="block font-semibold">Show registration popup</span>
-                  <span className="mt-1 block text-xs text-neutral-500">Dismissible form with X on Home and other public pages.</span>
+                  <span className="block font-semibold">Show on Home page</span>
+                  <span className="mt-1 block text-xs text-neutral-500">Adds this QR event as a section on the public Home page (not a popup).</span>
                 </span>
                 <input
                   type="checkbox"
@@ -202,19 +199,6 @@ export default function AdminQrEventsPage() {
                   onChange={event => setForm(current => current ? { ...current, show_registration_popup: event.target.checked } : current)}
                   className="size-5 accent-orange-500"
                 />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-bold">Popup delay (seconds)</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={300}
-                  value={form.registration_popup_delay_seconds}
-                  onChange={event => setForm(current => current ? { ...current, registration_popup_delay_seconds: Number(event.target.value) } : current)}
-                  className="focus-ring h-12 w-full rounded-xl border border-neutral-200 px-4 outline-none"
-                />
-                <span className="mt-1.5 block text-xs text-neutral-500">0 = show immediately. Max 300.</span>
               </label>
 
               <label className="block">
