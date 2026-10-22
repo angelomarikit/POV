@@ -8,6 +8,7 @@ export const TABLES = {
   founders: 'pov_founders',
   events: 'pov_events',
   eventGallery: 'pov_event_gallery',
+  registrants: 'pov_event_registrants',
   videos: 'pov_videos',
   news: 'pov_news',
   gallery: 'pov_gallery',

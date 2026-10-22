@@ -2,7 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { PublicLayout } from '../components/layout/PublicLayout'
 import { AdminLayout } from '../components/admin/AdminLayout'
-import { ProtectedAdminRoute } from '../components/admin/AdminAuth'
+import { ProtectedAdminRoute, ProtectedCmsRoute } from '../components/admin/AdminAuth'
 
 const HomePage = lazy(() => import('../pages/HomePage'))
 const CommunityPage = lazy(() => import('../pages/CommunityPage'))
@@ -19,7 +19,11 @@ const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'
 const AdminMediaPage = lazy(() => import('../pages/admin/AdminMediaPage'))
 const AdminContentPage = lazy(() => import('../pages/admin/AdminContentPage'))
 const AdminPresentationPage = lazy(() => import('../pages/admin/AdminPresentationPage'))
+const AdminStaffConsolePage = lazy(() => import('../pages/admin/AdminStaffConsolePage'))
+const AdminQrEventsPage = lazy(() => import('../pages/admin/AdminQrEventsPage'))
 const KnowMorePage = lazy(() => import('../pages/KnowMorePage'))
+const EventRegisterPage = lazy(() => import('../pages/EventRegisterPage'))
+const EventPassPage = lazy(() => import('../pages/EventPassPage'))
 
 function Load({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="grid min-h-[50svh] place-items-center"><div className="size-9 animate-spin rounded-full border-4 border-neutral-200 border-t-orange-500" /></div>}>{children}</Suspense>
@@ -35,6 +39,8 @@ export const router = createBrowserRouter([
       { path: 'founders', element: <Load><FoundersPage /></Load> },
       { path: 'events', element: <Load><EventsPage /></Load> },
       { path: 'events/:slug', element: <Load><EventDetailsPage /></Load> },
+      { path: 'events/:slug/register', element: <Load><EventRegisterPage /></Load> },
+      { path: 'pass/:code', element: <Load><EventPassPage /></Load> },
       { path: 'videos', element: <Navigate to="/know-more" replace /> },
       { path: 'know-more', element: <Load><KnowMorePage /></Load> },
       { path: 'news', element: <Load><NewsPage /></Load> },
@@ -48,25 +54,34 @@ export const router = createBrowserRouter([
   {
     path: '/admin',
     element: <ProtectedAdminRoute />,
-    children: [{
-      element: <AdminLayout />,
-      children: [
-        { index: true, element: <Load><AdminDashboardPage /></Load> },
-        { path: 'homepage', element: <Load><AdminContentPage kind="homepage" /></Load> },
-        { path: 'community-page', element: <Load><AdminContentPage kind="community" /></Load> },
-        { path: 'members', element: <Load><AdminContentPage kind="members" /></Load> },
-        { path: 'founders', element: <Load><AdminContentPage kind="founders" /></Load> },
-        { path: 'categories', element: <Load><AdminContentPage kind="categories" /></Load> },
-        { path: 'events', element: <Load><AdminContentPage kind="events" /></Load> },
-        { path: 'videos', element: <Load><AdminContentPage kind="videos" /></Load> },
-        { path: 'presentation', element: <Load><AdminPresentationPage /></Load> },
-        { path: 'news', element: <Load><AdminContentPage kind="news" /></Load> },
-        { path: 'gallery', element: <Load><AdminContentPage kind="gallery" /></Load> },
-        { path: 'social', element: <Load><AdminContentPage kind="social" /></Load> },
-        { path: 'contacts', element: <Load><AdminContentPage kind="contacts" /></Load> },
-        { path: 'settings', element: <Load><AdminContentPage kind="settings" /></Load> },
-        { path: 'media', element: <Load><AdminMediaPage /></Load> },
-      ],
-    }],
+    children: [
+      { path: 'staff', element: <Load><AdminStaffConsolePage /></Load> },
+      {
+        element: <ProtectedCmsRoute />,
+        children: [
+          {
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <Load><AdminDashboardPage /></Load> },
+              { path: 'homepage', element: <Load><AdminContentPage kind="homepage" /></Load> },
+              { path: 'community-page', element: <Load><AdminContentPage kind="community" /></Load> },
+              { path: 'members', element: <Load><AdminContentPage kind="members" /></Load> },
+              { path: 'founders', element: <Load><AdminContentPage kind="founders" /></Load> },
+              { path: 'categories', element: <Load><AdminContentPage kind="categories" /></Load> },
+              { path: 'events', element: <Load><AdminContentPage kind="events" /></Load> },
+              { path: 'qr-events', element: <Load><AdminQrEventsPage /></Load> },
+              { path: 'videos', element: <Load><AdminContentPage kind="videos" /></Load> },
+              { path: 'presentation', element: <Load><AdminPresentationPage /></Load> },
+              { path: 'news', element: <Load><AdminContentPage kind="news" /></Load> },
+              { path: 'gallery', element: <Load><AdminContentPage kind="gallery" /></Load> },
+              { path: 'social', element: <Load><AdminContentPage kind="social" /></Load> },
+              { path: 'contacts', element: <Load><AdminContentPage kind="contacts" /></Load> },
+              { path: 'settings', element: <Load><AdminContentPage kind="settings" /></Load> },
+              { path: 'media', element: <Load><AdminMediaPage /></Load> },
+            ],
+          },
+        ],
+      },
+    ],
   },
 ])

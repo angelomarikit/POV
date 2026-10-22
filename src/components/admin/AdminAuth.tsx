@@ -43,11 +43,36 @@ export function useAdminAuth() {
   return value
 }
 
+const CMS_ROLES = ['admin', 'editor'] as const
+const STAFF_ROLES = ['admin', 'editor', 'staff'] as const
+
 export function ProtectedAdminRoute() {
   const auth = useAdminAuth()
   const location = useLocation()
   if (auth.loading) return <AppShell className="!bg-[#0b0b0c] items-center justify-center text-white"><div className="size-10 animate-spin rounded-full border-4 border-white/20 border-t-orange-500" /></AppShell>
   if (!auth.session) return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
-  if (!auth.profile || !['admin', 'editor'].includes(auth.profile.role)) return <AppShell className="justify-center px-6 text-center"><div><h1 className="text-2xl font-black">Administrator access required</h1><p className="mt-2 text-sm text-neutral-500">Your account is signed in but has not been assigned an admin or editor role.</p><button className="mt-6 font-bold text-orange-600" onClick={() => void auth.signOut()}>Sign out</button></div></AppShell>
+  if (!auth.profile || !STAFF_ROLES.includes(auth.profile.role as typeof STAFF_ROLES[number])) {
+    return (
+      <AppShell className="justify-center px-6 text-center">
+        <div>
+          <h1 className="text-2xl font-black">Access required</h1>
+          <p className="mt-2 text-sm text-neutral-500">Your account is signed in but has not been assigned an admin, editor, or staff role.</p>
+          <button className="mt-6 font-bold text-orange-600" onClick={() => void auth.signOut()}>Sign out</button>
+        </div>
+      </AppShell>
+    )
+  }
+  if (auth.profile.role === 'staff' && location.pathname !== '/admin/staff') {
+    return <Navigate to="/admin/staff" replace />
+  }
+  return <Outlet />
+}
+
+export function ProtectedCmsRoute() {
+  const auth = useAdminAuth()
+  if (auth.loading) return null
+  if (!auth.profile || !CMS_ROLES.includes(auth.profile.role as typeof CMS_ROLES[number])) {
+    return <Navigate to="/admin/staff" replace />
+  }
   return <Outlet />
 }

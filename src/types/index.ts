@@ -16,7 +16,7 @@ export interface Profile {
   id: string
   email: string | null
   full_name: string | null
-  role: 'admin' | 'editor'
+  role: 'admin' | 'editor' | 'staff'
 }
 
 export interface MemberCategory {
@@ -75,6 +75,9 @@ export interface Founder {
 }
 
 export type EventStatus = 'upcoming' | 'ongoing' | 'completed'
+export type RegistrantRole = 'guest' | 'affiliate' | 'member'
+export type RegistrantStatus = 'confirmed' | 'checked_in' | 'cancelled'
+
 export interface Event {
   id: string
   site_slug: string
@@ -92,9 +95,46 @@ export interface Event {
   status: EventStatus | null
   featured: boolean
   is_published: boolean
+  registration_enabled?: boolean
+  show_registration_popup?: boolean
+  registration_popup_delay_seconds?: number
+  registration_status_label?: string | null
+  poster_image_url?: string | null
+  pass_brand_label?: string | null
   created_at: string
   updated_at: string
   event_gallery?: EventGalleryItem[]
+}
+
+export interface EventRegistrant {
+  id: string
+  site_slug: string
+  event_id: string
+  first_name: string
+  family_name: string
+  mobile: string | null
+  email: string | null
+  city: string | null
+  invited_by: string | null
+  role: RegistrantRole
+  pass_code: string
+  status: RegistrantStatus
+  checked_in_at: string | null
+  checked_in_by: string | null
+  created_at: string
+  updated_at: string
+  pov_events?: Pick<Event, 'id' | 'title' | 'slug' | 'start_date' | 'location' | 'pass_brand_label' | 'registration_status_label' | 'poster_image_url' | 'cover_image_url'> | null
+}
+
+export interface EventRegistrationInput {
+  event_id: string
+  first_name: string
+  family_name: string
+  mobile?: string
+  email?: string
+  city?: string
+  invited_by?: string
+  role: RegistrantRole
 }
 
 export interface EventGalleryItem {

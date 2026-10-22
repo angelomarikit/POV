@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { getSocialLinks, queryKeys } from '../../services/content'
 import { SOCIAL_DEFAULTS } from '../../config/site'
+import { RegistrationPromoPopup } from '../public/RegistrationPromoPopup'
 import { AppShell } from './AppShell'
 
 const tabs = [
@@ -23,6 +24,8 @@ function useScreenTitle() {
   const tab = tabs.find(item => item.to !== '/' && pathname === item.to)
   if (tab) return { title: tab.label, isRoot: true }
   if (pathname.startsWith('/community/')) return { title: 'Profile', isRoot: false }
+  if (pathname.includes('/register')) return { title: 'QR Pass', isRoot: false }
+  if (pathname.startsWith('/pass/')) return { title: 'Your Pass', isRoot: false }
   if (pathname.startsWith('/events/')) return { title: 'Event', isRoot: false }
   if (pathname.startsWith('/news/')) return { title: 'News', isRoot: false }
   if (pathname === '/know-more') return { title: 'Know More', isRoot: true }
@@ -71,6 +74,8 @@ export function PublicLayout() {
         </AnimatePresence>
         {pathname !== '/partnership' && <AppFooter />}
       </main>
+
+      <RegistrationPromoPopup />
 
       <AnimatePresence>
         {menuOpen && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] flex justify-center bg-black/60">

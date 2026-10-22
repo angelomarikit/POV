@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, Crown, Images, LayoutDashboard, LogOut, Menu, MessageCircle, Newspaper, PanelsTopLeft, PlaySquare, Presentation, Settings, Share2, Users, UsersRound, X } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Crown, Images, LayoutDashboard, LogOut, Menu, MessageCircle, Newspaper, PanelsTopLeft, PlaySquare, Presentation, QrCode, Settings, Share2, Ticket, Users, UsersRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -13,6 +13,8 @@ const nav = [
   { to: '/admin/founders', label: 'Founders', icon: Crown },
   { to: '/admin/categories', label: 'Categories', icon: Users },
   { to: '/admin/events', label: 'Events', icon: CalendarDays },
+  { to: '/admin/qr-events', label: 'QR Events', icon: Ticket },
+  { to: '/admin/staff', label: 'Staff Console', icon: QrCode },
   { to: '/admin/videos', label: 'Videos', icon: PlaySquare },
   { to: '/admin/presentation', label: 'POV Presentation', icon: Presentation },
   { to: '/admin/news', label: 'News', icon: Newspaper },

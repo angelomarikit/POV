@@ -57,6 +57,34 @@ from public.pov_admins;
 
 Only users listed in this table can reach the CMS or write content. To create a limited content editor, use `'editor'` instead of `'admin'`.
 
+### Create a staff (check-in only) account
+
+Staff can sign in at `/admin/login` and only see the Staff Console (scan, walk-in, people, report). They cannot open the CMS.
+
+1. Create the Auth user the same way as an admin (steps 1–3 above).
+2. Run:
+
+```sql
+insert into public.pov_admins (id, email, full_name, role)
+select id, email, 'Door Staff', 'staff'
+from auth.users
+where email = 'staff@example.com'
+on conflict (id) do update set role = 'staff', email = excluded.email, full_name = excluded.full_name;
+```
+
+Requires migration `008_staff_role_and_registration_popup.sql` (adds the `staff` role and home popup toggle).
+
+### Event QR pass flow (admin setup)
+
+QR settings are on **Admin → QR Events** (separate from **Admin → Events**). POV generates the QRs — nothing external.
+
+1. Create/publish the event under **Admin → Events**.
+2. Open **Admin → QR Events** → **Configure QR event**.
+3. Enable QR pass registration (and optional public popup + delay).
+4. Download the **registration QR** (or copy the register link) to share/print.
+5. Guest registers → POV generates their **confirmation QR / pass code**.
+6. Staff opens `/admin/staff` and scans that confirmation QR to check them in.
+
 ## 3. Add frontend environment values
 
 1. Go to **Project Settings → API**.

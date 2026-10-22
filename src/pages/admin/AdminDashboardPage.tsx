@@ -1,4 +1,4 @@
-import { CalendarDays, Crown, Image, Newspaper, PlaySquare, Users } from 'lucide-react'
+import { CalendarDays, Crown, Image, Newspaper, PlaySquare, QrCode, Users } from 'lucide-react'
 import { useQueries } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getEvents, getFounders, getGallery, getMembers, getNews, getVideos, queryKeys } from '../../services/content'
@@ -31,6 +31,14 @@ export default function AdminDashboardPage() {
       <p className="text-sm font-bold text-orange-600">Overview</p>
       <h1 className="mt-1 text-2xl font-black tracking-tight">Community dashboard</h1>
       <p className="mt-1.5 text-sm text-neutral-500">A quick look at what is published across the app.</p>
+      <div className="mt-4 grid gap-2">
+        <Link to="/admin/qr-events" className="focus-ring inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white">
+          <QrCode size={18} />QR Events
+        </Link>
+        <Link to="/admin/staff" className="focus-ring inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white font-bold text-neutral-900">
+          Open Staff Console
+        </Link>
+      </div>
     </div>
     <div className="grid grid-cols-2 gap-3">
       {cards.map(({ label, value, icon: Icon, to }) => <Link to={to} key={label} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition active:scale-[.98]">
